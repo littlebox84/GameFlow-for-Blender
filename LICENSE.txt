@@ -1,0 +1,8 @@
+GameFlow for Blender
+Copyright (c) 2026 Jared
+
+PRE-RELEASE LICENSE PLACEHOLDER
+
+This development build is provided for testing and evaluation. All rights are
+reserved until a public open-source or other distribution license is selected.
+Do not redistribute this pre-release build as an official GameFlow release.
