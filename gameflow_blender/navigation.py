@@ -77,11 +77,13 @@ class VIEW3D_OT_gameflow_navigation(Operator):
     _timer = None
     _keys = None
     _rmb_down = False
+    _rmb_origin = None
     _last_mouse = None
     _last_tick = None
     _last_rmb_press = 0.0
     _target = None
     _velocity = None
+    _ignore_warp_event = False
 
     def invoke(self, context, event):
         if state.is_alive():
@@ -92,11 +94,13 @@ class VIEW3D_OT_gameflow_navigation(Operator):
         state.stop_requested = False
         self._keys = set()
         self._rmb_down = False
+        self._rmb_origin = None
         self._last_mouse = Vector((event.mouse_x, event.mouse_y))
         self._last_tick = time.perf_counter()
         self._last_rmb_press = 0.0
         self._target = region_under_mouse(context, event)
         self._velocity = Vector((0.0, 0.0, 0.0))
+        self._ignore_warp_event = False
 
         self._timer = context.window_manager.event_timer_add(1.0 / 120.0, window=context.window)
         context.window_manager.modal_handler_add(self)
@@ -115,8 +119,10 @@ class VIEW3D_OT_gameflow_navigation(Operator):
         if self._keys is not None:
             self._keys.clear()
         self._rmb_down = False
+        self._rmb_origin = None
         self._target = None
         self._velocity = Vector((0.0, 0.0, 0.0))
+        self._ignore_warp_event = False
         self.report({'INFO'}, message)
 
     def update_target(self, context, event):
@@ -141,8 +147,48 @@ class VIEW3D_OT_gameflow_navigation(Operator):
         except RuntimeError:
             pass
 
+    def _warp_pointer_if_needed(self, context, event, target):
+        prefs = get_prefs(context)
+        if not prefs or not prefs.edge_wrap_look or target is None or context.window is None:
+            return
+
+        _area, region, _space, _rv3d = target
+        margin = min(prefs.edge_wrap_margin, max(10, min(region.width, region.height) // 4))
+        left = region.x + margin
+        right = region.x + region.width - margin
+        bottom = region.y + margin
+        top = region.y + region.height - margin
+
+        if left <= event.mouse_x <= right and bottom <= event.mouse_y <= top:
+            return
+
+        center_x = region.x + region.width // 2
+        center_y = region.y + region.height // 2
+        try:
+            context.window.cursor_warp(center_x, center_y)
+            self._last_mouse = Vector((center_x, center_y))
+            self._ignore_warp_event = True
+        except (ReferenceError, RuntimeError):
+            pass
+
+    def _restore_pointer(self, context):
+        prefs = get_prefs(context)
+        if not prefs or not prefs.restore_cursor_after_look or self._rmb_origin is None or context.window is None:
+            return
+        try:
+            context.window.cursor_warp(int(self._rmb_origin.x), int(self._rmb_origin.y))
+            self._last_mouse = self._rmb_origin.copy()
+            self._ignore_warp_event = True
+        except (ReferenceError, RuntimeError):
+            pass
+
     def update_look(self, context, event, target):
         if not self._rmb_down or target is None:
+            self._last_mouse = Vector((event.mouse_x, event.mouse_y))
+            return
+
+        if self._ignore_warp_event:
+            self._ignore_warp_event = False
             self._last_mouse = Vector((event.mouse_x, event.mouse_y))
             return
 
@@ -169,6 +215,7 @@ class VIEW3D_OT_gameflow_navigation(Operator):
         up_direction = candidate @ Vector((0.0, 1.0, 0.0))
         rv3d.view_rotation = candidate if up_direction.z > 0.02 else yawed.normalized()
         area.tag_redraw()
+        self._warp_pointer_if_needed(context, event, target)
 
     def handle_key(self, event):
         mapping = {
@@ -201,6 +248,7 @@ class VIEW3D_OT_gameflow_navigation(Operator):
             self._target = None
             self._keys.clear()
             self._rmb_down = False
+            self._rmb_origin = None
             self._velocity = Vector((0.0, 0.0, 0.0))
             return
 
@@ -260,7 +308,10 @@ class VIEW3D_OT_gameflow_navigation(Operator):
         target_now = self.update_target(context, event)
 
         if target_now is None and event.type != 'TIMER':
+            if self._rmb_down:
+                self._restore_pointer(context)
             self._rmb_down = False
+            self._rmb_origin = None
             self._keys.clear()
             return {'PASS_THROUGH'}
 
@@ -277,17 +328,22 @@ class VIEW3D_OT_gameflow_navigation(Operator):
                 double_time = prefs.double_click_time if prefs else 0.32
                 if now - self._last_rmb_press <= double_time:
                     self._rmb_down = False
+                    self._rmb_origin = None
                     self._last_rmb_press = 0.0
                     self.open_context_menu(context, target_now or self._target)
                     return {'RUNNING_MODAL'}
 
                 self._last_rmb_press = now
                 self._rmb_down = True
-                self._last_mouse = Vector((event.mouse_x, event.mouse_y))
+                self._rmb_origin = Vector((event.mouse_x, event.mouse_y))
+                self._last_mouse = self._rmb_origin.copy()
+                self._ignore_warp_event = False
                 return {'RUNNING_MODAL'}
 
             if event.value == 'RELEASE':
                 self._rmb_down = False
+                self._restore_pointer(context)
+                self._rmb_origin = None
                 return {'RUNNING_MODAL'}
 
         if event.type == 'MOUSEMOVE':
