@@ -8,7 +8,7 @@ Instead of asking a new creator to memorize Blender navigation before they can b
 
 ## Public alpha
 
-Current version: **0.2.0**  
+Current version: **0.2.1**  
 Target: **Blender 4.2+**
 
 GameFlow is currently an early public alpha. The core idea works, but this is still being tested across Blender versions, workspaces, project loading, modeling modes, and different hardware.
@@ -25,6 +25,7 @@ GameFlow is currently an early public alpha. The core idea works, but this is st
 | Mouse Wheel | Zoom |
 | Double Right Mouse | Context menu |
 | Left Mouse | Normal Blender interaction |
+| F | Frame selected |
 | F8 | Start / stop GameFlow |
 | F3 | Blender command search |
 
@@ -49,6 +50,8 @@ The long-term goal is simple:
 - Continuous WASD movement
 - Q/E vertical movement
 - Hold-RMB mouse-look
+- Unlimited RMB look with automatic pointer recentering near viewport edges
+- Optional cursor return after RMB look
 - Sprint movement
 - Direct mouse-wheel zoom
 - Normal left-click interaction
@@ -60,6 +63,8 @@ The long-term goal is simple:
 - Beginner and advanced settings
 - Steam Input/controller mapping guidance
 - Keymap backup and restore workflow
+- Copyable diagnostics for easier bug reports
+- GitHub Actions Python syntax validation on pushes and pull requests
 
 ## Why there is both an add-on and a keymap
 
@@ -74,8 +79,6 @@ The add-on is the main product. `GameFlow_Minimal_Keymap.py` remains available a
 
 ## Installation
 
-### Add-on
-
 1. Download the latest GameFlow add-on ZIP.
 2. Open Blender.
 3. Go to **Edit → Preferences → Add-ons**.
@@ -83,13 +86,9 @@ The add-on is the main product. `GameFlow_Minimal_Keymap.py` remains available a
 5. Select the GameFlow ZIP.
 6. Enable **GameFlow for Blender**.
 7. Open the 3D Viewport and press **N → GameFlow**.
-8. Enable the full GameFlow controls.
+8. Click **Enable Full GameFlow Controls**.
 
-### Standalone keymap fallback
-
-If needed, `GameFlow_Minimal_Keymap.py` can be imported manually:
-
-**Edit → Preferences → Keymap → Import**
+If needed, `GameFlow_Minimal_Keymap.py` can also be imported manually from **Edit → Preferences → Keymap → Import**.
 
 ## Controller support
 
@@ -99,7 +98,7 @@ See [`docs/STEAM_INPUT_SETUP.md`](docs/STEAM_INPUT_SETUP.md).
 
 ## Advanced controls
 
-GameFlow is meant to work intuitively out of the box, but advanced users can tune things such as:
+GameFlow is meant to work intuitively out of the box, but advanced users can tune:
 
 - movement speed;
 - RMB movement boost;
@@ -110,15 +109,15 @@ GameFlow is meant to work intuitively out of the box, but advanced users can tun
 - inverted look axes;
 - Q/E movement reference;
 - double-click timing;
+- unlimited RMB-look edge wrapping;
+- cursor return behavior;
 - auto-start behavior;
 - project-load recovery;
 - keymap mode and restoration.
 
-## Project status
+## Bug reports
 
-GameFlow started because a young new Blender user was excited to create but was getting frustrated by the navigation barrier. The first prototype simply tried to make Blender move like Roblox Studio. That experiment turned into a larger idea: Blender can stay powerful while being much easier to enter.
-
-This repository is where that idea becomes a real open project.
+Open **Advanced Settings → Copy Diagnostics** and paste the result into your issue. That includes the GameFlow version, Blender version, operating system, current preset, keymap mode, and navigation state.
 
 ## Contributing
 
