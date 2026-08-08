@@ -158,38 +158,51 @@ class GAMEFLOW_Preferences(AddonPreferences):
     auto_start: BoolProperty(name="Auto-start When Blender Opens", default=True)
     restart_after_file_load: BoolProperty(name="Reconnect After Opening/New Project", default=True)
     restore_controls_on_disable: BoolProperty(name="Restore Saved Controls When Add-on Is Disabled", default=True)
-    show_advanced: BoolProperty(name="Advanced Settings", default=False)
+
+    # UI-only state. Keeping these in preferences makes the panel feel consistent
+    # between sessions without affecting navigation behavior.
+    show_controls: BoolProperty(name="Controls", default=False)
     show_controller: BoolProperty(name="Controller Setup", default=False)
+    show_advanced: BoolProperty(name="Advanced Settings", default=False)
+    show_support: BoolProperty(name="Support & Recovery", default=False)
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text="GameFlow for Blender")
+        layout.label(text="GameFlow for Blender", icon='PLAY')
         layout.label(text="From player to creator.")
         layout.separator()
-        layout.prop(self, "preset")
-        layout.prop(self, "movement_speed")
-        layout.prop(self, "look_sensitivity")
-        layout.prop(self, "keymap_mode")
-        layout.prop(self, "auto_start")
-        layout.prop(self, "restart_after_file_load")
+
+        col = layout.column(align=True)
+        col.prop(self, "preset")
+        col.prop(self, "movement_speed")
+        col.prop(self, "look_sensitivity")
+
         layout.separator()
-        layout.label(text="Advanced")
-        layout.prop(self, "rmb_speed_multiplier")
-        layout.prop(self, "sprint_multiplier")
-        layout.prop(self, "smooth_movement")
-        layout.prop(self, "acceleration")
-        layout.prop(self, "deceleration")
-        layout.prop(self, "wheel_zoom_factor")
-        layout.prop(self, "invert_x")
-        layout.prop(self, "invert_y")
-        layout.prop(self, "invert_zoom")
-        layout.prop(self, "vertical_mode")
-        layout.prop(self, "double_click_time")
-        layout.prop(self, "edge_wrap_look")
+        behavior = layout.box()
+        behavior.label(text="Behavior")
+        behavior.prop(self, "keymap_mode")
+        behavior.prop(self, "auto_start")
+        behavior.prop(self, "restart_after_file_load")
+        behavior.prop(self, "restore_controls_on_disable")
+
+        advanced = layout.box()
+        advanced.label(text="Advanced")
+        advanced.prop(self, "rmb_speed_multiplier")
+        advanced.prop(self, "sprint_multiplier")
+        advanced.prop(self, "smooth_movement")
+        if self.smooth_movement:
+            advanced.prop(self, "acceleration")
+            advanced.prop(self, "deceleration")
+        advanced.prop(self, "wheel_zoom_factor")
+        advanced.prop(self, "invert_x")
+        advanced.prop(self, "invert_y")
+        advanced.prop(self, "invert_zoom")
+        advanced.prop(self, "vertical_mode")
+        advanced.prop(self, "double_click_time")
+        advanced.prop(self, "edge_wrap_look")
         if self.edge_wrap_look:
-            layout.prop(self, "edge_wrap_margin")
-            layout.prop(self, "restore_cursor_after_look")
-        layout.prop(self, "restore_controls_on_disable")
+            advanced.prop(self, "edge_wrap_margin")
+            advanced.prop(self, "restore_cursor_after_look")
 
 
 def get_prefs(context=None):
