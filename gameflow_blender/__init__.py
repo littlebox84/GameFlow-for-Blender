@@ -1,10 +1,10 @@
 bl_info = {
     "name": "GameFlow for Blender",
     "author": "Jared + OpenAI",
-    "version": (0, 2, 1),
+    "version": (0, 3, 0),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar > GameFlow",
-    "description": "From player to creator — intuitive game-style controls, simplified keymaps, and Steam Input controller compatibility",
+    "description": "From player to creator — intuitive game-style controls, simplified keymaps, safer shortcuts, and Steam Input controller compatibility",
     "category": "3D View",
 }
 
