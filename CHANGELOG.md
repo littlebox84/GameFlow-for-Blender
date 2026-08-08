@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.1 — Mouse-look and support polish
+
+- Added **Unlimited RMB Look** so mouse-look can continue without getting stuck at the viewport edge.
+- Added automatic pointer recentering near viewport boundaries during RMB look.
+- Added optional **Return Cursor After RMB Look** so the pointer goes back to where the look gesture started.
+- Added adjustable edge-wrap margin for users who want to tune the behavior.
+- Added a clearer beginner-facing GameFlow panel with version/status information and a simplified control cheat sheet.
+- Added **Copy Diagnostics** for bug reports, including GameFlow version, Blender version, operating system, preset, keymap mode, navigation state, and lifecycle settings.
+- Updated reset behavior to restore the new mouse-look defaults.
+
 ## 0.2.0 — Public alpha
 
 - Rebranded and consolidated the project as **GameFlow for Blender — From player to creator.**
