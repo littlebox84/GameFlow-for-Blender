@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import BoolProperty, EnumProperty, FloatProperty
+from bpy.props import BoolProperty, EnumProperty, FloatProperty, IntProperty
 from bpy.types import AddonPreferences
 
 ADDON_ID = __package__
@@ -93,10 +93,7 @@ def _preset_update(self, _context):
 class GAMEFLOW_Preferences(AddonPreferences):
     bl_idname = ADDON_ID
 
-    enabled: BoolProperty(
-        name="Full GameFlow Controls Enabled",
-        default=False,
-    )
+    enabled: BoolProperty(name="Full GameFlow Controls Enabled", default=False)
     preset: EnumProperty(
         name="Control Feel",
         items=[
@@ -141,6 +138,23 @@ class GAMEFLOW_Preferences(AddonPreferences):
         default='WORLD',
     )
     double_click_time: FloatProperty(name="Context Double-Click Time", default=0.32, min=0.15, max=0.60)
+    edge_wrap_look: BoolProperty(
+        name="Unlimited RMB Look",
+        description="Keep mouse-look moving by recentering the pointer before it reaches the viewport edge",
+        default=True,
+    )
+    edge_wrap_margin: IntProperty(
+        name="Look Edge Margin",
+        description="Distance from the viewport edge where GameFlow recenters the pointer",
+        default=42,
+        min=10,
+        max=200,
+    )
+    restore_cursor_after_look: BoolProperty(
+        name="Return Cursor After RMB Look",
+        description="Put the pointer back where RMB look started when you release the button",
+        default=True,
+    )
     auto_start: BoolProperty(name="Auto-start When Blender Opens", default=True)
     restart_after_file_load: BoolProperty(name="Reconnect After Opening/New Project", default=True)
     restore_controls_on_disable: BoolProperty(name="Restore Saved Controls When Add-on Is Disabled", default=True)
@@ -171,6 +185,10 @@ class GAMEFLOW_Preferences(AddonPreferences):
         layout.prop(self, "invert_zoom")
         layout.prop(self, "vertical_mode")
         layout.prop(self, "double_click_time")
+        layout.prop(self, "edge_wrap_look")
+        if self.edge_wrap_look:
+            layout.prop(self, "edge_wrap_margin")
+            layout.prop(self, "restore_cursor_after_look")
         layout.prop(self, "restore_controls_on_disable")
 
 
