@@ -8,7 +8,7 @@ Instead of asking a new creator to memorize Blender navigation before they can b
 
 ## Public alpha
 
-Current version: **0.2.1**  
+Current version: **0.3.0**  
 Target: **Blender 4.2+**
 
 GameFlow is currently an early public alpha. The core idea works, but this is still being tested across Blender versions, workspaces, project loading, modeling modes, and different hardware.
@@ -59,12 +59,26 @@ The long-term goal is simple:
 - Persistent navigation across Blender workspaces
 - Recovery after opening or creating Blender projects
 - Minimal GameFlow keymap to remove conflicting Blender shortcuts
+- Modifier-safe runtime input so shortcuts such as Ctrl+S, Ctrl+Shift+S, Ctrl+Z and other modified keys remain Blender controls
+- Focus-loss protection to prevent stuck movement after Alt-Tab or switching applications
 - Configurable movement and mouse feel
 - Beginner and advanced settings
 - Steam Input/controller mapping guidance
 - Keymap backup and restore workflow
+- One-click **Repair GameFlow** recovery
 - Copyable diagnostics for easier bug reports
 - GitHub Actions Python syntax validation on pushes and pull requests
+
+## UI
+
+The GameFlow sidebar is designed so new users only see what matters first:
+
+1. **Status** — READY or PAUSED, plus pause/resume.
+2. **Quick Feel** — preset, movement speed, and look sensitivity.
+3. **Controls** — a compact cheat sheet when needed.
+4. **Controller / Steam Input** — optional controller setup.
+5. **Advanced Settings** — input, motion, look, and startup tuning.
+6. **Support & Recovery** — repair, diagnostics, keymap restore, settings reset, and full disable/restore.
 
 ## Why there is both an add-on and a keymap
 
@@ -86,7 +100,7 @@ The add-on is the main product. `GameFlow_Minimal_Keymap.py` remains available a
 5. Select the GameFlow ZIP.
 6. Enable **GameFlow for Blender**.
 7. Open the 3D Viewport and press **N → GameFlow**.
-8. Click **Enable Full GameFlow Controls**.
+8. Click **Enable GameFlow**.
 
 If needed, `GameFlow_Minimal_Keymap.py` can also be imported manually from **Edit → Preferences → Keymap → Import**.
 
@@ -115,9 +129,11 @@ GameFlow is meant to work intuitively out of the box, but advanced users can tun
 - project-load recovery;
 - keymap mode and restoration.
 
-## Bug reports
+## Recovery
 
-Open **Advanced Settings → Copy Diagnostics** and paste the result into your issue. That includes the GameFlow version, Blender version, operating system, current preset, keymap mode, and navigation state.
+If GameFlow ever shows as enabled but navigation is not responding, open **Support & Recovery → Repair GameFlow**. It repairs stale runtime state, reapplies the selected keymap, and restarts navigation when possible.
+
+For bug reports, use **Support & Recovery → Copy Diagnostics** and paste the result into the issue.
 
 ## Contributing
 
