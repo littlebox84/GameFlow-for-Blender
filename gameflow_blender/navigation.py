@@ -125,6 +125,16 @@ class VIEW3D_OT_gameflow_navigation(Operator):
         self._ignore_warp_event = False
         self.report({'INFO'}, message)
 
+    def _clear_input_state(self, context, restore_pointer=True):
+        if restore_pointer and self._rmb_down:
+            self._restore_pointer(context)
+        if self._keys is not None:
+            self._keys.clear()
+        self._rmb_down = False
+        self._rmb_origin = None
+        self._velocity = Vector((0.0, 0.0, 0.0))
+        self._ignore_warp_event = False
+
     def update_target(self, context, event):
         target = region_under_mouse(context, event)
         if target is not None:
@@ -225,6 +235,12 @@ class VIEW3D_OT_gameflow_navigation(Operator):
         key = mapping.get(event.type)
         if key is None:
             return False
+
+        # Core safety rule: GameFlow never steals normal Blender modifier
+        # shortcuts such as Ctrl+S, Ctrl+Shift+S, Ctrl+Z, Alt+W, etc.
+        if key != 'SHIFT' and (event.ctrl or event.alt or event.oskey):
+            return False
+
         if event.value == 'PRESS':
             self._keys.add(key)
         elif event.value == 'RELEASE':
@@ -242,14 +258,12 @@ class VIEW3D_OT_gameflow_navigation(Operator):
         area, _region, _space, rv3d = self._target
         if context.window is None or context.window.screen is None:
             self._target = None
+            self._clear_input_state(context, restore_pointer=False)
             return
 
         if not any(current_area == area for current_area in context.window.screen.areas):
             self._target = None
-            self._keys.clear()
-            self._rmb_down = False
-            self._rmb_origin = None
-            self._velocity = Vector((0.0, 0.0, 0.0))
+            self._clear_input_state(context)
             return
 
         prefs = get_prefs(context)
@@ -301,18 +315,25 @@ class VIEW3D_OT_gameflow_navigation(Operator):
             self.finish(context, "GameFlow paused during file load")
             return {'CANCELLED'}
 
+        # Losing focus while a key is held can otherwise leave movement stuck.
+        if event.type == 'WINDOW_DEACTIVATE':
+            self._clear_input_state(context)
+            return {'PASS_THROUGH'}
+
         if event.type == 'F8' and event.value == 'PRESS':
             self.finish(context)
             return {'FINISHED'}
 
+        # Escape releases mouse-look immediately without killing Blender's
+        # normal Escape behavior when GameFlow is not looking around.
+        if event.type == 'ESC' and event.value == 'PRESS' and self._rmb_down:
+            self._clear_input_state(context)
+            return {'RUNNING_MODAL'}
+
         target_now = self.update_target(context, event)
 
         if target_now is None and event.type != 'TIMER':
-            if self._rmb_down:
-                self._restore_pointer(context)
-            self._rmb_down = False
-            self._rmb_origin = None
-            self._keys.clear()
+            self._clear_input_state(context)
             return {'PASS_THROUGH'}
 
         if event.type == 'LEFTMOUSE':
