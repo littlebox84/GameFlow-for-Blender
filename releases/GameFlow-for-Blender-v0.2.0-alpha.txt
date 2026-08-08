@@ -1,0 +1,5 @@
+Download package placeholder
+
+SHA256: 36afdca102bca2d6531797ab565f0b4cc522ed37c31b814e553374bfb1038c61
+
+The actual installable ZIP is available from the project release package generated alongside this repository.
