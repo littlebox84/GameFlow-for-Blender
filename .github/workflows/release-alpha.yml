@@ -1,0 +1,46 @@
+name: Build GameFlow Alpha Release
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'gameflow_blender/**'
+      - '.github/workflows/release-alpha.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Blender install ZIP
+        run: |
+          mkdir -p dist
+          zip -r dist/GameFlow-for-Blender-v0.2.0-alpha.zip gameflow_blender
+          sha256sum dist/GameFlow-for-Blender-v0.2.0-alpha.zip > dist/GameFlow-for-Blender-v0.2.0-alpha.sha256
+
+      - name: Publish alpha release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.2.0-alpha
+          name: GameFlow for Blender v0.2.0-alpha
+          prerelease: true
+          generate_release_notes: true
+          body: |
+            # GameFlow for Blender v0.2.0-alpha
+
+            **From player to creator.**
+
+            Early public alpha of GameFlow, a beginner-friendly game-style control layer for Blender.
+
+            Install by downloading `GameFlow-for-Blender-v0.2.0-alpha.zip` below, then in Blender use **Edit → Preferences → Add-ons → Install from Disk**.
+
+            Core controls: WASD movement, Q/E vertical movement, RMB mouse-look, Shift sprint, mouse-wheel zoom, double-RMB context menu, and normal left-click Blender interaction.
+          files: |
+            dist/GameFlow-for-Blender-v0.2.0-alpha.zip
+            dist/GameFlow-for-Blender-v0.2.0-alpha.sha256
