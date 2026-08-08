@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.3.0 — UI and core safety
+
+- Redesigned the GameFlow sidebar around a simpler first-use flow: status, quick feel, controls, controller setup, advanced settings, and support/recovery.
+- Added a compact **READY / PAUSED** runtime status with the active preset visible at a glance.
+- Added a cleaner two-column control cheat sheet and collapsible sections so beginners are not hit with every option at once.
+- Added **Repair GameFlow**, a one-click recovery action that repairs stale runtime state, reapplies the selected GameFlow keymap, and restarts navigation when possible.
+- Added a dedicated **Support & Recovery** section containing diagnostics, keymap repair, saved-control restoration, settings reset, and full disable/restore actions.
+- Fixed a core input issue where GameFlow could capture modified movement letters such as **Ctrl+S**. Modifier shortcuts using Ctrl, Alt, or OS/Command now pass through to Blender normally.
+- Added focus-loss protection: held movement keys and RMB-look state are cleared when Blender loses window focus, preventing stuck movement after Alt-Tab or app switching.
+- Pressing Escape while RMB-look is active now safely releases GameFlow look state without changing normal Escape behavior when RMB-look is not active.
+- Improved preferences layout and grouped startup, input, motion, and look behavior more clearly.
+- Diagnostics now include auto-start state in addition to GameFlow version, Blender version, OS, keymap mode, preset, runtime state, and reconnect behavior.
+
 ## 0.2.1 — Mouse-look and support polish
 
 - Added **Unlimited RMB Look** so mouse-look can continue without getting stuck at the viewport edge.
@@ -31,10 +44,3 @@
 
 - Initial branded GameFlow beta based on the Kid Mode navigation prototype.
 - Added workspace-aware runtime movement and early file-load restart handling.
-
-### Reliability fixes included in the 0.2.0 package
-
-- Added a runtime heartbeat so stale "GameFlow is running" flags recover automatically after a destroyed modal operator.
-- Mouse-move events now pass through when RMB look is not active, preserving hover, gizmos and left-click dragging.
-- Conflicts-only mode no longer disables modified combinations such as Ctrl/Shift shortcuts just because they use W/A/S/D/Q/E.
-- Included `GameFlow_Minimal_Keymap.py` as the standalone successor to the original custom keybinding used by the prototype.
