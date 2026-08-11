@@ -5,78 +5,12 @@ from bpy.types import AddonPreferences
 ADDON_ID = __package__
 
 PRESETS = {
-    'GAMEFLOW': {
-        'movement_speed': 4.0,
-        'rmb_speed_multiplier': 2.5,
-        'sprint_multiplier': 2.0,
-        'look_sensitivity': 0.0030,
-        'wheel_zoom_factor': 0.88,
-        'acceleration': 14.0,
-        'deceleration': 18.0,
-        'invert_x': False,
-        'invert_y': False,
-        'vertical_mode': 'WORLD',
-    },
-    'ROBLOX': {
-        'movement_speed': 5.0,
-        'rmb_speed_multiplier': 3.0,
-        'sprint_multiplier': 2.0,
-        'look_sensitivity': 0.0028,
-        'wheel_zoom_factor': 0.88,
-        'acceleration': 16.0,
-        'deceleration': 20.0,
-        'invert_x': False,
-        'invert_y': False,
-        'vertical_mode': 'WORLD',
-    },
-    'MINECRAFT': {
-        'movement_speed': 4.5,
-        'rmb_speed_multiplier': 2.2,
-        'sprint_multiplier': 1.8,
-        'look_sensitivity': 0.0032,
-        'wheel_zoom_factor': 0.90,
-        'acceleration': 18.0,
-        'deceleration': 22.0,
-        'invert_x': False,
-        'invert_y': False,
-        'vertical_mode': 'WORLD',
-    },
-    'FPS': {
-        'movement_speed': 6.0,
-        'rmb_speed_multiplier': 1.8,
-        'sprint_multiplier': 2.5,
-        'look_sensitivity': 0.0036,
-        'wheel_zoom_factor': 0.86,
-        'acceleration': 22.0,
-        'deceleration': 24.0,
-        'invert_x': False,
-        'invert_y': False,
-        'vertical_mode': 'WORLD',
-    },
-    'STEAM': {
-        'movement_speed': 4.5,
-        'rmb_speed_multiplier': 2.2,
-        'sprint_multiplier': 1.8,
-        'look_sensitivity': 0.0024,
-        'wheel_zoom_factor': 0.90,
-        'acceleration': 10.0,
-        'deceleration': 14.0,
-        'invert_x': False,
-        'invert_y': False,
-        'vertical_mode': 'WORLD',
-    },
-    'ACCESSIBLE': {
-        'movement_speed': 2.5,
-        'rmb_speed_multiplier': 1.6,
-        'sprint_multiplier': 1.4,
-        'look_sensitivity': 0.0020,
-        'wheel_zoom_factor': 0.92,
-        'acceleration': 7.0,
-        'deceleration': 9.0,
-        'invert_x': False,
-        'invert_y': False,
-        'vertical_mode': 'WORLD',
-    },
+    'GAMEFLOW': {'movement_speed': 4.0, 'rmb_speed_multiplier': 2.5, 'sprint_multiplier': 2.0, 'look_sensitivity': 0.0030, 'wheel_zoom_factor': 0.88, 'acceleration': 14.0, 'deceleration': 18.0, 'invert_x': False, 'invert_y': False, 'vertical_mode': 'WORLD'},
+    'ROBLOX': {'movement_speed': 5.0, 'rmb_speed_multiplier': 3.0, 'sprint_multiplier': 2.0, 'look_sensitivity': 0.0028, 'wheel_zoom_factor': 0.88, 'acceleration': 16.0, 'deceleration': 20.0, 'invert_x': False, 'invert_y': False, 'vertical_mode': 'WORLD'},
+    'MINECRAFT': {'movement_speed': 4.5, 'rmb_speed_multiplier': 2.2, 'sprint_multiplier': 1.8, 'look_sensitivity': 0.0032, 'wheel_zoom_factor': 0.90, 'acceleration': 18.0, 'deceleration': 22.0, 'invert_x': False, 'invert_y': False, 'vertical_mode': 'WORLD'},
+    'FPS': {'movement_speed': 6.0, 'rmb_speed_multiplier': 1.8, 'sprint_multiplier': 2.5, 'look_sensitivity': 0.0036, 'wheel_zoom_factor': 0.86, 'acceleration': 22.0, 'deceleration': 24.0, 'invert_x': False, 'invert_y': False, 'vertical_mode': 'WORLD'},
+    'STEAM': {'movement_speed': 4.5, 'rmb_speed_multiplier': 2.2, 'sprint_multiplier': 1.8, 'look_sensitivity': 0.0024, 'wheel_zoom_factor': 0.90, 'acceleration': 10.0, 'deceleration': 14.0, 'invert_x': False, 'invert_y': False, 'vertical_mode': 'WORLD'},
+    'ACCESSIBLE': {'movement_speed': 2.5, 'rmb_speed_multiplier': 1.6, 'sprint_multiplier': 1.4, 'look_sensitivity': 0.0020, 'wheel_zoom_factor': 0.92, 'acceleration': 7.0, 'deceleration': 9.0, 'invert_x': False, 'invert_y': False, 'vertical_mode': 'WORLD'},
 }
 
 
@@ -84,16 +18,24 @@ def _preset_update(self, _context):
     if self.preset == 'CUSTOM':
         return
     values = PRESETS.get(self.preset)
-    if not values:
-        return
-    for name, value in values.items():
-        setattr(self, name, value)
+    if values:
+        for name, value in values.items():
+            setattr(self, name, value)
 
 
 class GAMEFLOW_Preferences(AddonPreferences):
     bl_idname = ADDON_ID
 
     enabled: BoolProperty(name="Full GameFlow Controls Enabled", default=False)
+    creator_mode: EnumProperty(
+        name="Creator Mode",
+        items=[
+            ('NAVIGATE', "Explore", "Game-style viewport navigation"),
+            ('BUILD', "Build", "Create, place, duplicate, snap, rotate, and arrange objects"),
+            ('PAINT', "Paint", "Fast beginner-friendly material presets"),
+        ],
+        default='NAVIGATE',
+    )
     preset: EnumProperty(
         name="Control Feel",
         items=[
@@ -111,8 +53,8 @@ class GAMEFLOW_Preferences(AddonPreferences):
     keymap_mode: EnumProperty(
         name="Keyboard Simplification",
         items=[
-            ('MINIMAL', "GameFlow Minimal", "Recommended: remove most single-key 3D View clutter while keeping menus and core modeling actions"),
-            ('CONFLICTS', "Conflicts Only", "Only disable shortcuts that directly conflict with GameFlow movement/navigation"),
+            ('MINIMAL', "GameFlow Minimal", "Recommended beginner keymap"),
+            ('CONFLICTS', "Conflicts Only", "Only disable direct GameFlow conflicts"),
             ('NATIVE', "Native Blender", "Do not change Blender's user keymap"),
         ],
         default='MINIMAL',
@@ -129,39 +71,21 @@ class GAMEFLOW_Preferences(AddonPreferences):
     invert_x: BoolProperty(name="Invert Horizontal Look", default=False)
     invert_y: BoolProperty(name="Invert Vertical Look", default=False)
     invert_zoom: BoolProperty(name="Invert Scroll Zoom", default=False)
-    vertical_mode: EnumProperty(
-        name="Q / E Direction",
-        items=[
-            ('WORLD', "World Up/Down", "Q/E always move vertically in the scene"),
-            ('VIEW', "View Relative", "Q/E move relative to the current view"),
-        ],
-        default='WORLD',
-    )
+    vertical_mode: EnumProperty(name="Q / E Direction", items=[('WORLD', "World Up/Down", "World vertical"), ('VIEW', "View Relative", "View-relative vertical")], default='WORLD')
     double_click_time: FloatProperty(name="Context Double-Click Time", default=0.32, min=0.15, max=0.60)
-    edge_wrap_look: BoolProperty(
-        name="Unlimited RMB Look",
-        description="Keep mouse-look moving by recentering the pointer before it reaches the viewport edge",
-        default=True,
-    )
-    edge_wrap_margin: IntProperty(
-        name="Look Edge Margin",
-        description="Distance from the viewport edge where GameFlow recenters the pointer",
-        default=42,
-        min=10,
-        max=200,
-    )
-    restore_cursor_after_look: BoolProperty(
-        name="Return Cursor After RMB Look",
-        description="Put the pointer back where RMB look started when you release the button",
-        default=True,
-    )
+    edge_wrap_look: BoolProperty(name="Unlimited RMB Look", description="Recenter pointer near viewport edges", default=True)
+    edge_wrap_margin: IntProperty(name="Look Edge Margin", default=42, min=10, max=200)
+    restore_cursor_after_look: BoolProperty(name="Return Cursor After RMB Look", default=True)
+
+    build_grid_step: FloatProperty(name="Build Step", description="Distance used by GameFlow nudge and duplicate tools", default=1.0, min=0.01, max=100.0, precision=2)
+    build_rotation_step: FloatProperty(name="Rotation Step", description="Degrees used by GameFlow step rotation", default=45.0, min=1.0, max=180.0, precision=1)
+
     auto_start: BoolProperty(name="Auto-start When Blender Opens", default=True)
     restart_after_file_load: BoolProperty(name="Reconnect After Opening/New Project", default=True)
     restore_controls_on_disable: BoolProperty(name="Restore Saved Controls When Add-on Is Disabled", default=True)
 
-    # UI-only state. Keeping these in preferences makes the panel feel consistent
-    # between sessions without affecting navigation behavior.
     show_controls: BoolProperty(name="Controls", default=False)
+    show_build: BoolProperty(name="Build Tools", default=True)
     show_controller: BoolProperty(name="Controller Setup", default=False)
     show_advanced: BoolProperty(name="Advanced Settings", default=False)
     show_support: BoolProperty(name="Support & Recovery", default=False)
@@ -171,13 +95,18 @@ class GAMEFLOW_Preferences(AddonPreferences):
         layout.label(text="GameFlow for Blender", icon='PLAY')
         layout.label(text="From player to creator.")
         layout.separator()
+        layout.prop(self, "creator_mode")
 
         col = layout.column(align=True)
         col.prop(self, "preset")
         col.prop(self, "movement_speed")
         col.prop(self, "look_sensitivity")
 
-        layout.separator()
+        build = layout.box()
+        build.label(text="Creator Build")
+        build.prop(self, "build_grid_step")
+        build.prop(self, "build_rotation_step")
+
         behavior = layout.box()
         behavior.label(text="Behavior")
         behavior.prop(self, "keymap_mode")
