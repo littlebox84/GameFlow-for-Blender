@@ -9,15 +9,23 @@ from .preferences import get_prefs
 
 
 def _view3d_override(context):
-    if context.area and context.area.type == 'VIEW_3D' and context.region and context.region.type == 'WINDOW':
-        return context.temp_override(
-            window=context.window,
-            screen=context.window.screen,
-            area=context.area,
-            region=context.region,
-            space_data=context.space_data,
-        )
-    return None
+    area = context.area
+    if area is None or area.type != 'VIEW_3D' or context.window is None or context.window.screen is None:
+        return None
+
+    region = context.region if context.region and context.region.type == 'WINDOW' else None
+    if region is None:
+        region = next((candidate for candidate in area.regions if candidate.type == 'WINDOW'), None)
+    if region is None:
+        return None
+
+    return context.temp_override(
+        window=context.window,
+        screen=context.window.screen,
+        area=area,
+        region=region,
+        space_data=area.spaces.active,
+    )
 
 
 def _selected_objects(context):
@@ -63,8 +71,7 @@ class GAMEFLOW_OT_add_primitive(Operator):
             'PLANE': bpy.ops.mesh.primitive_plane_add,
             'CONE': bpy.ops.mesh.primitive_cone_add,
         }
-        op = ops[self.primitive]
-        op(location=context.scene.cursor.location)
+        ops[self.primitive](location=context.scene.cursor.location)
         obj = context.active_object
         if obj:
             obj.name = f"GF_{self.primitive.title()}"
@@ -87,18 +94,13 @@ class GAMEFLOW_OT_set_tool(Operator):
     )
 
     def execute(self, context):
-        names = {
-            'SELECT': 'builtin.select_box',
-            'MOVE': 'builtin.move',
-            'ROTATE': 'builtin.rotate',
-            'SCALE': 'builtin.scale',
-        }
+        names = {'SELECT': 'builtin.select_box', 'MOVE': 'builtin.move', 'ROTATE': 'builtin.rotate', 'SCALE': 'builtin.scale'}
         override = _view3d_override(context)
+        if override is None:
+            self.report({'WARNING'}, "Open GameFlow from a 3D Viewport")
+            return {'CANCELLED'}
         try:
-            if override:
-                with override:
-                    bpy.ops.wm.tool_set_by_id(name=names[self.tool])
-            else:
+            with override:
                 bpy.ops.wm.tool_set_by_id(name=names[self.tool])
         except RuntimeError as exc:
             self.report({'WARNING'}, str(exc))
@@ -157,8 +159,7 @@ class GAMEFLOW_OT_duplicate_offset(Operator):
     axis: EnumProperty(items=[('X', "X", "X axis"), ('Y', "Y", "Y axis"), ('Z', "Z", "Z axis")], default='X')
 
     def execute(self, context):
-        objects = _selected_objects(context)
-        if not objects:
+        if not _selected_objects(context):
             self.report({'INFO'}, "Select an object first")
             return {'CANCELLED'}
         step = _grid_step(context)
@@ -180,13 +181,11 @@ class GAMEFLOW_OT_drop_to_floor(Operator):
         if not objects:
             self.report({'INFO'}, "Select an object first")
             return {'CANCELLED'}
-
         for obj in objects:
             if not getattr(obj, 'bound_box', None):
                 continue
             world_corners = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
-            min_z = min(corner.z for corner in world_corners)
-            obj.location.z -= min_z
+            obj.location.z -= min(corner.z for corner in world_corners)
         return {'FINISHED'}
 
 
@@ -217,11 +216,10 @@ class GAMEFLOW_OT_focus_selected(Operator):
             self.report({'INFO'}, "Select an object first")
             return {'CANCELLED'}
         override = _view3d_override(context)
+        if override is None:
+            return {'CANCELLED'}
         try:
-            if override:
-                with override:
-                    bpy.ops.view3d.view_selected(use_all_regions=False)
-            else:
+            with override:
                 bpy.ops.view3d.view_selected(use_all_regions=False)
         except RuntimeError:
             return {'CANCELLED'}
