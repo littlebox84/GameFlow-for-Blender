@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.0 — Creator update
+
+- Added **Creator Mode** with Explore, Build, and Paint workflows.
+- Added a new `build_tools.py` module for beginner-friendly object creation and manipulation.
+- Added quick primitive creation for Cube, Cylinder, Sphere, Plane, and Cone.
+- Added one-click Select / Move / Rotate / Scale tool switching.
+- Added configurable **Build Step** used by object nudging and duplicate-offset actions.
+- Added configurable **Rotation Step** for game-editor-style stepped rotation.
+- Added X/Y/Z nudge controls for precise placement without memorizing Blender transform commands.
+- Added X/Y/Z step rotation controls.
+- Added Duplicate + Offset along X, Y, or Z for fast construction workflows.
+- Added **Drop to Floor** to place selected objects on world Z = 0 using their transformed bounding boxes.
+- Added **Focus Selected** from the GameFlow Build panel.
+- Added a one-click increment snap toggle.
+- Added **Paint mode** with beginner material presets: Plastic, Metal, Matte, Glass, and Glow.
+- Redesigned the main panel around Creator Mode while preserving the v0.3 navigation/recovery tools.
+- Diagnostics now include Creator Mode and build-step settings.
+
 ## 0.3.0 — UI and core safety
 
 - Redesigned the GameFlow sidebar around a simpler first-use flow: status, quick feel, controls, controller setup, advanced settings, and support/recovery.
@@ -10,37 +28,18 @@
 - Fixed a core input issue where GameFlow could capture modified movement letters such as **Ctrl+S**. Modifier shortcuts using Ctrl, Alt, or OS/Command now pass through to Blender normally.
 - Added focus-loss protection: held movement keys and RMB-look state are cleared when Blender loses window focus, preventing stuck movement after Alt-Tab or app switching.
 - Pressing Escape while RMB-look is active now safely releases GameFlow look state without changing normal Escape behavior when RMB-look is not active.
-- Improved preferences layout and grouped startup, input, motion, and look behavior more clearly.
-- Diagnostics now include auto-start state in addition to GameFlow version, Blender version, OS, keymap mode, preset, runtime state, and reconnect behavior.
 
 ## 0.2.1 — Mouse-look and support polish
 
-- Added **Unlimited RMB Look** so mouse-look can continue without getting stuck at the viewport edge.
-- Added automatic pointer recentering near viewport boundaries during RMB look.
-- Added optional **Return Cursor After RMB Look** so the pointer goes back to where the look gesture started.
-- Added adjustable edge-wrap margin for users who want to tune the behavior.
-- Added a clearer beginner-facing GameFlow panel with version/status information and a simplified control cheat sheet.
-- Added **Copy Diagnostics** for bug reports, including GameFlow version, Blender version, operating system, preset, keymap mode, navigation state, and lifecycle settings.
-- Updated reset behavior to restore the new mouse-look defaults.
+- Added **Unlimited RMB Look** with pointer recentering near viewport boundaries.
+- Added optional **Return Cursor After RMB Look**.
+- Added **Copy Diagnostics** for bug reports.
 
 ## 0.2.0 — Public alpha
 
-- Rebranded and consolidated the project as **GameFlow for Blender — From player to creator.**
-- Added one-click **Enable Full GameFlow Controls** workflow.
-- Added safe backup/restore of affected Blender shortcut active states.
-- Added three keymap modes: GameFlow Minimal, Conflicts Only, Native Blender.
-- Added persistent file-load recovery so GameFlow can reconnect after opening or creating a project.
-- Added game-style continuous WASD + Q/E movement.
-- Added RMB mouse-look, RMB movement boost, Shift sprint, reliable wheel zoom and double-RMB context menu.
-- Preserved left-click Blender interaction and normal non-viewport UI behavior.
-- Added movement smoothing with acceleration/deceleration controls.
-- Added look/zoom inversion and world-relative vs view-relative vertical movement.
-- Added presets: GameFlow, Roblox, Minecraft, First-Person, Steam Controller, Accessibility, Custom.
-- Added Steam Input controller mapping documentation and copy-to-clipboard helper.
-- Added GameFlow reset, keymap reapply, saved-controls restore and Blender-default restore actions.
-- Added F8 pause/resume navigation.
+- Consolidated the project as **GameFlow for Blender — From player to creator.**
+- Added one-click GameFlow enable workflow, keymap backup/restore, persistent file-load recovery, WASD + Q/E navigation, RMB mouse-look, sprint, wheel zoom, presets, Steam Input guidance, and recovery tools.
 
 ## 0.1.0 — Prototype
 
 - Initial branded GameFlow beta based on the Kid Mode navigation prototype.
-- Added workspace-aware runtime movement and early file-load restart handling.
