@@ -1,10 +1,10 @@
 bl_info = {
     "name": "GameFlow for Blender",
     "author": "Jared + OpenAI",
-    "version": (0, 3, 0),
+    "version": (0, 4, 0),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar > GameFlow",
-    "description": "From player to creator — intuitive game-style controls, simplified keymaps, safer shortcuts, and Steam Input controller compatibility",
+    "description": "From player to creator — game-style navigation plus beginner-friendly creation and build tools",
     "category": "3D View",
 }
 
@@ -13,6 +13,7 @@ import bpy
 from . import state
 from . import preferences
 from . import navigation
+from . import build_tools
 from . import ui
 from . import keymap
 from . import lifecycle
@@ -21,6 +22,7 @@ from . import lifecycle
 def register():
     preferences.register()
     navigation.register()
+    build_tools.register()
     ui.register()
     keymap.register_addon_keymaps()
     lifecycle.register_handlers()
@@ -42,5 +44,6 @@ def unregister():
             pass
 
     ui.unregister()
+    build_tools.unregister()
     navigation.unregister()
     preferences.unregister()
