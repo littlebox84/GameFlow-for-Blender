@@ -25,33 +25,36 @@ jobs:
       - name: Build Blender install ZIP
         run: |
           mkdir -p dist
-          zip -r dist/GameFlow-for-Blender-v0.3.0-alpha.zip gameflow_blender
-          sha256sum dist/GameFlow-for-Blender-v0.3.0-alpha.zip > dist/GameFlow-for-Blender-v0.3.0-alpha.sha256
+          zip -r dist/GameFlow-for-Blender-v0.4.0-alpha.zip gameflow_blender
+          sha256sum dist/GameFlow-for-Blender-v0.4.0-alpha.zip > dist/GameFlow-for-Blender-v0.4.0-alpha.sha256
 
       - name: Publish alpha release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.3.0-alpha
-          name: GameFlow for Blender v0.3.0-alpha
+          tag_name: v0.4.0-alpha
+          name: GameFlow for Blender v0.4.0-alpha
           prerelease: true
           generate_release_notes: true
           body: |
-            # GameFlow for Blender v0.3.0-alpha
+            # GameFlow for Blender v0.4.0-alpha
 
             **From player to creator.**
 
-            This public alpha adds the redesigned beginner-first UI and core reliability improvements from GameFlow 0.3.0.
+            GameFlow 0.4 is the Creator Update: familiar navigation now grows into an approachable creation workflow.
 
             Highlights:
-            - Cleaner READY / PAUSED status and Quick Feel controls
-            - Collapsible Controls, Controller, Advanced, and Support sections
-            - One-click Repair GameFlow recovery
-            - Modifier-safe input so Blender shortcuts such as Ctrl+S and Ctrl+Z pass through normally
-            - Focus-loss protection to prevent stuck movement after Alt-Tab
-            - Unlimited RMB mouse-look with cursor recentering and optional cursor return
-            - Persistent project-load recovery, keymap backup/restore, presets, diagnostics, and Steam Input guidance
+            - New Creator Modes: Explore, Build, and Paint
+            - Game-style primitive creation and transform-tool switching
+            - Configurable build and rotation steps
+            - X/Y/Z nudge controls
+            - X/Y/Z stepped rotation
+            - Duplicate + Offset construction tools
+            - Drop to Floor and Focus Selected
+            - Increment snapping toggle
+            - Quick Plastic, Metal, Matte, Glass, and Glow materials
+            - Existing WASD navigation, unlimited RMB look, keymap safety, repair tools, diagnostics, project-load recovery, and Steam Input support remain intact
 
-            Install by downloading `GameFlow-for-Blender-v0.3.0-alpha.zip` below, then in Blender use **Edit → Preferences → Add-ons → Install from Disk**. Do not extract the ZIP first.
+            Install by downloading `GameFlow-for-Blender-v0.4.0-alpha.zip`, then in Blender use **Edit → Preferences → Add-ons → Install from Disk**. Do not extract the ZIP first.
           files: |
-            dist/GameFlow-for-Blender-v0.3.0-alpha.zip
-            dist/GameFlow-for-Blender-v0.3.0-alpha.sha256
+            dist/GameFlow-for-Blender-v0.4.0-alpha.zip
+            dist/GameFlow-for-Blender-v0.4.0-alpha.sha256
