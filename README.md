@@ -6,7 +6,7 @@ GameFlow is a beginner-friendly control and creation layer for Blender. It makes
 
 ## Public alpha
 
-Current version: **0.4.0**  
+Current version: **0.4.1**  
 Target: **Blender 4.2+**
 
 ## The idea
@@ -16,6 +16,41 @@ Target: **Blender 4.2+**
 GameFlow is built around one rule:
 
 > **GameFlow should teach creation, not navigation.**
+
+## Dark Viewport HUD
+
+GameFlow 0.4.1 adds an optional dark in-viewport HUD without changing Blender's global theme.
+
+HUD modes:
+
+- **Full** — Creator Mode, READY/PAUSED state, selected object, mode-specific info, and control hints.
+- **Minimal** — compact Creator Mode, status, and selected-object display.
+- **Off** — no viewport HUD.
+
+In Build mode the HUD also shows build step, rotation step, and snap status. Explore mode shows movement/look values. Paint mode shows a material workflow hint.
+
+## Control Feel Presets — what is the difference?
+
+These presets change how GameFlow **feels**. They do not replace Blender and they do not change what keys GameFlow uses.
+
+| Preset | Best for | What changes |
+|---|---|---|
+| **GameFlow** | Most keyboard + mouse users | Balanced default movement, mouse-look, acceleration, and zoom. Start here. |
+| **Roblox** | Roblox / Roblox Studio users | Faster movement and stronger RMB speed boost with a familiar game-editor feel. |
+| **Minecraft** | Minecraft players | Slightly tighter, more responsive keyboard + mouse movement and look feel. |
+| **First-Person** | Experienced FPS players | Fastest, snappiest movement and sprint response. |
+| **Steam Controller** | Gamepads mapped through Steam Input | Smoother acceleration and lower look sensitivity so an analog stick feels less twitchy. |
+| **Accessibility** | Users wanting gentler controls | Slower movement, camera response, acceleration, and sprinting. |
+| **Custom** | Advanced users | Uses your manually tuned values. |
+
+### Steam Controller preset vs Steam Input
+
+These are **not the same thing**:
+
+- **Steam Input** is the controller-mapping system. It maps a physical Xbox, PlayStation, Steam Deck, or other controller to GameFlow's keyboard/mouse inputs.
+- **Steam Controller preset** is only a GameFlow tuning preset. It changes movement speed, acceleration, and look sensitivity to feel better on analog sticks.
+
+For controller use: **enable/configure Steam Input first, then try the Steam Controller preset.** Selecting the preset by itself does not connect or enable a controller.
 
 ## Creator Modes
 
@@ -88,7 +123,7 @@ GameFlow currently supports controller workflows through **Steam Input**, mappin
 
 GameFlow began as a custom Blender keymap. A keymap alone cannot provide true continuous game-style movement, so the project now uses two cooperating layers:
 
-1. **Runtime add-on** — continuous movement, mouse-look, build tools, materials, lifecycle recovery and UI.
+1. **Runtime add-on** — continuous movement, mouse-look, build tools, materials, dark HUD, lifecycle recovery and UI.
 2. **GameFlow keymap layer** — removes or redirects conflicting shortcuts while keeping Blender menus and essential modeling access available.
 
 `GameFlow_Minimal_Keymap.py` remains available as a standalone fallback/manual import.
