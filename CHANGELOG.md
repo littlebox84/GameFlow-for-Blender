@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.1 — Dark HUD update
+
+- Added an optional **dark in-viewport GameFlow HUD** without changing Blender's global theme.
+- Added **Full / Minimal / Off** HUD modes.
+- Full HUD shows Creator Mode, READY/PAUSED state, selected object, mode-specific information, and navigation hints.
+- Build mode HUD shows build step, rotation step, and snapping state.
+- Explore mode HUD shows movement speed and look sensitivity.
+- Paint mode HUD shows a quick material-workflow hint.
+- Added a clear **Control Feel Guide** explaining the difference between GameFlow, Roblox, Minecraft, First-Person, Steam Controller, Accessibility, and Custom presets.
+- Clarified that **Steam Input** is the controller-mapping layer, while the **Steam Controller preset** only changes GameFlow movement/look tuning.
+- Added the same controller/preset explanation directly to the GameFlow sidebar and README.
+- Diagnostics now include HUD mode.
+
 ## 0.4.0 — Creator update
 
 - Added **Creator Mode** with Explore, Build, and Paint workflows.
