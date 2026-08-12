@@ -7,7 +7,7 @@ from .preferences import get_prefs, PRESETS
 from .navigation import start_navigation
 from .keymap import apply_gameflow_keymap, restore_saved_controls, backup_path, save_preferences
 
-GAMEFLOW_VERSION = "0.4.0"
+GAMEFLOW_VERSION = "0.4.1"
 
 STEAM_MAPPING = """GameFlow for Blender — Steam Input mapping
 Left Stick: W / A / S / D
@@ -149,6 +149,7 @@ class WM_OT_gameflow_reset_settings(Operator):
         if prefs is None:
             return {'CANCELLED'}
         prefs.creator_mode = 'NAVIGATE'
+        prefs.hud_mode = 'FULL'
         prefs.preset = 'GAMEFLOW'
         for name, value in PRESETS['GAMEFLOW'].items():
             setattr(prefs, name, value)
@@ -191,6 +192,7 @@ class WM_OT_gameflow_copy_diagnostics(Operator):
             f"GameFlow enabled: {bool(prefs and prefs.enabled)}",
             f"Navigation alive: {state.is_alive()}",
             f"Creator mode: {prefs.creator_mode if prefs else 'unavailable'}",
+            f"HUD mode: {prefs.hud_mode if prefs else 'unavailable'}",
             f"Preset: {prefs.preset if prefs else 'unavailable'}",
             f"Keymap mode: {prefs.keymap_mode if prefs else 'unavailable'}",
             f"Build step: {prefs.build_grid_step if prefs else 'unavailable'}",
@@ -202,6 +204,19 @@ class WM_OT_gameflow_copy_diagnostics(Operator):
         context.window_manager.clipboard = "\n".join(lines)
         self.report({'INFO'}, "GameFlow diagnostics copied")
         return {'FINISHED'}
+
+
+def _draw_preset_help(layout):
+    box = layout.box()
+    box.label(text="Control Feel Guide", icon='INFO')
+    box.label(text="GameFlow — balanced keyboard + mouse default")
+    box.label(text="Roblox — faster, Roblox Studio-like movement")
+    box.label(text="Minecraft — tighter keyboard + mouse response")
+    box.label(text="Steam Controller — smoother values for a gamepad")
+    box.separator()
+    box.label(text="Steam Input is the controller mapper, not a preset.")
+    box.label(text="Use Steam Input to map your controller to GameFlow keys.")
+    box.label(text="Then choose Steam Controller for controller-friendly tuning.")
 
 
 class VIEW3D_PT_gameflow(Panel):
@@ -239,6 +254,12 @@ class VIEW3D_PT_gameflow(Panel):
         mode.label(text="Creator Mode", icon='WORKSPACE')
         mode.prop(prefs, "creator_mode", expand=True)
 
+        hud_box = layout.box()
+        hud_box.label(text="Dark Viewport HUD", icon='OVERLAY')
+        hud_box.prop(prefs, "hud_mode", expand=True)
+        if prefs.hud_mode != 'OFF':
+            hud_box.label(text="Dark HUD overlays the viewport only; Blender's theme is untouched.")
+
         if prefs.creator_mode == 'NAVIGATE':
             quick = layout.box()
             quick.label(text="Explore", icon='ORIENTATION_GLOBAL')
@@ -246,11 +267,13 @@ class VIEW3D_PT_gameflow(Panel):
             row = quick.row(align=True)
             row.prop(prefs, "movement_speed", text="Speed")
             row.prop(prefs, "look_sensitivity", text="Look")
+            quick.prop(prefs, "show_preset_help", text="What do these presets mean?", toggle=True)
+            if prefs.show_preset_help:
+                _draw_preset_help(quick)
 
         elif prefs.creator_mode == 'BUILD':
             build = layout.box()
             build.label(text="Build", icon='MOD_BUILD')
-
             tools = build.row(align=True)
             for tool, label in [('SELECT', 'Select'), ('MOVE', 'Move'), ('ROTATE', 'Rotate'), ('SCALE', 'Scale')]:
                 op = tools.operator("gameflow.set_tool", text=label)
@@ -326,7 +349,9 @@ class VIEW3D_PT_gameflow(Panel):
         controller = layout.box()
         controller.prop(prefs, "show_controller", text="Controller / Steam Input", toggle=True, icon='GAME')
         if prefs.show_controller:
-            controller.label(text="Map a controller to the same GameFlow inputs.")
+            controller.label(text="Steam Input maps your physical controller to keys/mouse.")
+            controller.label(text="The Steam Controller preset only changes GameFlow's feel.")
+            controller.label(text="For controller use: enable Steam Input, then try the Steam preset.")
             controller.operator("wm.gameflow_copy_steam_mapping", icon='COPYDOWN')
 
         advanced = layout.box()
