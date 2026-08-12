@@ -39,11 +39,11 @@ class GAMEFLOW_Preferences(AddonPreferences):
     preset: EnumProperty(
         name="Control Feel",
         items=[
-            ('GAMEFLOW', "GameFlow", "Balanced default designed to feel familiar immediately"),
-            ('ROBLOX', "Roblox", "Faster game-style movement"),
-            ('MINECRAFT', "Minecraft", "Responsive movement with a familiar mouse feel"),
-            ('FPS', "First-Person", "Fast movement and quick response"),
-            ('STEAM', "Steam Controller", "Smoother values for Steam Input controller use"),
+            ('GAMEFLOW', "GameFlow", "Balanced keyboard/mouse default for most users"),
+            ('ROBLOX', "Roblox", "Faster movement and camera feel inspired by Roblox Studio navigation"),
+            ('MINECRAFT', "Minecraft", "Responsive keyboard/mouse feel inspired by Minecraft movement"),
+            ('FPS', "First-Person", "Fast movement and quick response for experienced FPS players"),
+            ('STEAM', "Steam Controller", "Smoother tuning intended for a controller mapped through Steam Input; this preset does not enable Steam Input by itself"),
             ('ACCESSIBLE', "Accessibility", "Slower, gentler movement and camera response"),
             ('CUSTOM', "Custom", "Use the advanced values below"),
         ],
@@ -58,6 +58,15 @@ class GAMEFLOW_Preferences(AddonPreferences):
             ('NATIVE', "Native Blender", "Do not change Blender's user keymap"),
         ],
         default='MINIMAL',
+    )
+    hud_mode: EnumProperty(
+        name="Dark Viewport HUD",
+        items=[
+            ('FULL', "Full", "Dark GameFlow HUD with mode, status, selection, build data, and control hints"),
+            ('MINIMAL', "Minimal", "Compact dark HUD with mode, status, and selected object"),
+            ('OFF', "Off", "Hide the GameFlow viewport HUD"),
+        ],
+        default='FULL',
     )
 
     movement_speed: FloatProperty(name="Walk Speed", default=4.0, min=0.05, max=100.0)
@@ -89,6 +98,7 @@ class GAMEFLOW_Preferences(AddonPreferences):
     show_controller: BoolProperty(name="Controller Setup", default=False)
     show_advanced: BoolProperty(name="Advanced Settings", default=False)
     show_support: BoolProperty(name="Support & Recovery", default=False)
+    show_preset_help: BoolProperty(name="What do these presets mean?", default=False)
 
     def draw(self, context):
         layout = self.layout
@@ -96,6 +106,7 @@ class GAMEFLOW_Preferences(AddonPreferences):
         layout.label(text="From player to creator.")
         layout.separator()
         layout.prop(self, "creator_mode")
+        layout.prop(self, "hud_mode")
 
         col = layout.column(align=True)
         col.prop(self, "preset")
