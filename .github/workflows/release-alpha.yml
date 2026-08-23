@@ -25,33 +25,33 @@ jobs:
       - name: Build Blender install ZIP
         run: |
           mkdir -p dist
-          zip -r dist/GameFlow-for-Blender-v0.5.2-alpha.zip gameflow_blender
-          sha256sum dist/GameFlow-for-Blender-v0.5.2-alpha.zip > dist/GameFlow-for-Blender-v0.5.2-alpha.sha256
+          zip -r dist/GameFlow-for-Blender-v0.5.3-alpha.zip gameflow_blender
+          sha256sum dist/GameFlow-for-Blender-v0.5.3-alpha.zip > dist/GameFlow-for-Blender-v0.5.3-alpha.sha256
 
       - name: Publish alpha release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.5.2-alpha
-          name: GameFlow for Blender v0.5.2-alpha
+          tag_name: v0.5.3-alpha
+          name: GameFlow for Blender v0.5.3-alpha
           prerelease: true
           generate_release_notes: true
           body: |
-            # GameFlow for Blender v0.5.2-alpha
+            # GameFlow for Blender v0.5.3-alpha
 
             **From player to creator.**
 
-            Blender 5.0.5 registration hotfix #2.
+            Blender 5.0.5 registration hotfix #3.
 
             Fixes:
-            - Adds direct scanning of `AddonPreferences.__subclasses__()` for stale GameFlow preference classes
-            - Removes old GameFlow AddonPreferences even when Blender does not expose them through `bpy.types`
-            - Retries preferences registration once after stale-class cleanup when Blender reports `already registered as a subclass`
-            - Keeps the package-level cleanup for all other GameFlow RNA classes
+            - Makes GameFlow AddonPreferences registration idempotent
+            - Detects when Blender calls `register()` again on the exact same already-registered Python class and safely treats it as complete
+            - Keeps stale-class cleanup for older module generations
+            - Retries only when the duplicate-registration error is genuinely from a stale class
             - Retains all v0.5 Placement & Stability features
 
-            This build specifically targets the repeated `GAMEFLOW_Preferences` registration failure observed on Blender 5.0.5 during legacy add-on reinstall/update cycles.
+            Important upgrade note for Blender 5.0.5: if an older GameFlow build is already loaded, installing a replacement ZIP can cause Blender's legacy installer to invoke the old module again in the same session. For the cleanest upgrade, remove/disable the old GameFlow copy, fully close Blender, reopen, then install this ZIP.
 
-            Install by downloading `GameFlow-for-Blender-v0.5.2-alpha.zip`, fully closing Blender, reopening it, then using **Edit → Preferences → Add-ons → Install from Disk**. Do not extract the ZIP.
+            Install `GameFlow-for-Blender-v0.5.3-alpha.zip` directly with **Edit → Preferences → Add-ons → Install from Disk**. Do not extract the ZIP first.
           files: |
-            dist/GameFlow-for-Blender-v0.5.2-alpha.zip
-            dist/GameFlow-for-Blender-v0.5.2-alpha.sha256
+            dist/GameFlow-for-Blender-v0.5.3-alpha.zip
+            dist/GameFlow-for-Blender-v0.5.3-alpha.sha256
