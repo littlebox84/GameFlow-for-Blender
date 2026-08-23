@@ -4,6 +4,7 @@ import bpy
 from bpy.props import BoolProperty, EnumProperty
 from bpy.types import Operator
 from bpy_extras import view3d_utils
+from mathutils import Vector
 
 from .preferences import get_prefs
 
@@ -71,6 +72,18 @@ def _fallback_floor(origin, direction):
     return origin + direction * t
 
 
+def _surface_resting_origin(preview, hit_location, normal):
+    """Return an object origin that puts the preview's lowest point on the hit plane."""
+    if preview is None or not getattr(preview, 'bound_box', None):
+        return hit_location.copy()
+    try:
+        linear = preview.matrix_world.to_3x3()
+        projections = [(linear @ Vector(corner)).dot(normal) for corner in preview.bound_box]
+        return hit_location - normal * min(projections)
+    except (ReferenceError, RuntimeError, ValueError):
+        return hit_location.copy()
+
+
 class GAMEFLOW_OT_place_primitive(Operator):
     bl_idname = 'gameflow.place_primitive'
     bl_label = 'Place Object'
@@ -122,6 +135,7 @@ class GAMEFLOW_OT_place_primitive(Operator):
 
         hit = False
         hit_location = None
+        hit_normal = None
         preview = self._preview
         hidden = False
         try:
@@ -130,7 +144,7 @@ class GAMEFLOW_OT_place_primitive(Operator):
                 hidden = True
                 context.view_layer.update()
             depsgraph = context.evaluated_depsgraph_get()
-            hit, hit_location, _normal, _face, _obj, _matrix = context.scene.ray_cast(depsgraph, origin, direction)
+            hit, hit_location, hit_normal, _face, _obj, _matrix = context.scene.ray_cast(depsgraph, origin, direction)
         except (ReferenceError, RuntimeError):
             hit = False
         finally:
@@ -141,7 +155,12 @@ class GAMEFLOW_OT_place_primitive(Operator):
                 except (ReferenceError, RuntimeError):
                     pass
 
-        point = hit_location.copy() if hit and hit_location is not None else _fallback_floor(origin, direction)
+        if hit and hit_location is not None and hit_normal is not None:
+            point = _surface_resting_origin(preview, hit_location, hit_normal.normalized())
+        else:
+            floor_hit = _fallback_floor(origin, direction)
+            point = _surface_resting_origin(preview, floor_hit, Vector((0.0, 0.0, 1.0)))
+
         prefs = get_prefs(context)
         if prefs and prefs.placement_grid_snap:
             step = max(0.001, prefs.build_grid_step)
