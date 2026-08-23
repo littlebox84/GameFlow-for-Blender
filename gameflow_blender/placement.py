@@ -8,7 +8,17 @@ from bpy_extras import view3d_utils
 from .preferences import get_prefs
 
 
-def _find_view3d(context, event=None):
+def cleanup_preview_objects():
+    """Remove orphaned GameFlow placement previews after reload/crash/unregister."""
+    for obj in list(bpy.data.objects):
+        try:
+            if obj.get('gameflow_preview', False):
+                bpy.data.objects.remove(obj, do_unlink=True)
+        except (ReferenceError, RuntimeError):
+            pass
+
+
+def _find_view3d(context, event=None, allow_fallback=True):
     window = context.window
     if window is None or window.screen is None:
         return None
@@ -20,11 +30,14 @@ def _find_view3d(context, event=None):
             for region in area.regions:
                 if region.type == 'WINDOW' and region.x <= mx < region.x + region.width and region.y <= my < region.y + region.height:
                     return area, region, area.spaces.active, area.spaces.active.region_3d
-    for area in window.screen.areas:
-        if area.type == 'VIEW_3D':
-            for region in area.regions:
-                if region.type == 'WINDOW':
-                    return area, region, area.spaces.active, area.spaces.active.region_3d
+        if not allow_fallback:
+            return None
+    if allow_fallback:
+        for area in window.screen.areas:
+            if area.type == 'VIEW_3D':
+                for region in area.regions:
+                    if region.type == 'WINDOW':
+                        return area, region, area.spaces.active, area.spaces.active.region_3d
     return None
 
 
@@ -99,7 +112,7 @@ class GAMEFLOW_OT_place_primitive(Operator):
         return True
 
     def _mouse_world(self, context, event):
-        target = _find_view3d(context, event)
+        target = _find_view3d(context, event, allow_fallback=False)
         if target is None:
             return None
         _area, region, _space, rv3d = target
@@ -152,23 +165,33 @@ class GAMEFLOW_OT_place_primitive(Operator):
         return True
 
     def invoke(self, context, event):
-        self._target = _find_view3d(context, event)
+        if context.mode != 'OBJECT':
+            self.report({'WARNING'}, 'GameFlow placement currently works in Object Mode')
+            return {'CANCELLED'}
+        cleanup_preview_objects()
+        self._target = _find_view3d(context, event, allow_fallback=True)
         if self._target is None:
             self.report({'WARNING'}, 'Open a 3D Viewport to use placement mode')
             return {'CANCELLED'}
         if not self._new_preview(context):
             return {'CANCELLED'}
         context.window_manager.modal_handler_add(self)
-        self.report({'INFO'}, 'Placement mode: move mouse, Left Click places, R rotates, Esc/Right Click exits')
+        self.report({'INFO'}, 'Placement: move mouse, Left Click places, R rotates, Esc/Right Click exits')
         return {'RUNNING_MODAL'}
 
     def modal(self, context, event):
         if self._preview is None:
             return {'FINISHED'}
+        if context.window is None or context.window.screen is None:
+            self._remove_preview()
+            return {'CANCELLED'}
 
         if event.type in {'ESC', 'RIGHTMOUSE'} and event.value == 'PRESS':
             self._remove_preview()
             return {'CANCELLED'}
+
+        if event.type == 'WINDOW_DEACTIVATE':
+            return {'PASS_THROUGH'}
 
         if event.type == 'MOUSEMOVE':
             point = self._mouse_world(context, event)
@@ -183,6 +206,8 @@ class GAMEFLOW_OT_place_primitive(Operator):
             return {'RUNNING_MODAL'}
 
         if event.type == 'LEFTMOUSE' and event.value == 'PRESS':
+            if _find_view3d(context, event, allow_fallback=False) is None:
+                return {'PASS_THROUGH'}
             if self._confirm_preview(context) and not self.continuous:
                 return {'FINISHED'}
             return {'RUNNING_MODAL'}
@@ -197,10 +222,12 @@ classes = (GAMEFLOW_OT_place_primitive,)
 
 
 def register():
+    cleanup_preview_objects()
     for cls in classes:
         bpy.utils.register_class(cls)
 
 
 def unregister():
+    cleanup_preview_objects()
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
