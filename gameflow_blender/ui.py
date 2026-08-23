@@ -7,7 +7,7 @@ from .preferences import get_prefs, PRESETS
 from .navigation import start_navigation
 from .keymap import apply_gameflow_keymap, restore_saved_controls, backup_path, save_preferences
 
-GAMEFLOW_VERSION = "0.4.1"
+GAMEFLOW_VERSION = "0.5.0"
 
 STEAM_MAPPING = """GameFlow for Blender — Steam Input mapping
 Left Stick: W / A / S / D
@@ -28,19 +28,24 @@ Menu/Start: F8
 
 class WM_OT_gameflow_enable(Operator):
     bl_idname = "wm.gameflow_enable"
-    bl_label = "Enable Full GameFlow Controls"
-    bl_description = "Back up conflicting shortcuts, apply GameFlow controls, and start navigation"
+    bl_label = "Enable GameFlow"
+    bl_description = "Enable GameFlow creator tools and, unless Safe Mode is active, game-style controls"
 
     def execute(self, context):
         prefs = get_prefs(context)
         if prefs is None:
             return {'CANCELLED'}
+        prefs.enabled = True
+        if prefs.safe_mode:
+            state.stop_requested = True
+            save_preferences()
+            self.report({'INFO'}, "GameFlow enabled in Safe Mode; Blender controls left unchanged")
+            return {'FINISHED'}
         try:
             changed = apply_gameflow_keymap(prefs.keymap_mode)
         except Exception as exc:
             self.report({'ERROR'}, str(exc))
             return {'CANCELLED'}
-        prefs.enabled = True
         state.stop_requested = False
         started = start_navigation()
         save_preferences()
@@ -75,6 +80,9 @@ class WM_OT_gameflow_toggle_navigation(Operator):
 
     def execute(self, context):
         prefs = get_prefs(context)
+        if prefs and prefs.safe_mode:
+            self.report({'INFO'}, "Turn Safe Mode off to use GameFlow navigation")
+            return {'CANCELLED'}
         if state.is_alive():
             state.stop_requested = True
             return {'FINISHED'}
@@ -90,6 +98,9 @@ class WM_OT_gameflow_reapply_keymap(Operator):
 
     def execute(self, context):
         prefs = get_prefs(context)
+        if prefs and prefs.safe_mode:
+            self.report({'INFO'}, "Safe Mode is active; turn it off before applying the GameFlow keymap")
+            return {'CANCELLED'}
         try:
             changed = apply_gameflow_keymap(prefs.keymap_mode if prefs else 'MINIMAL')
         except Exception as exc:
@@ -118,15 +129,18 @@ class WM_OT_gameflow_restore_saved(Operator):
 class WM_OT_gameflow_repair(Operator):
     bl_idname = "wm.gameflow_repair"
     bl_label = "Repair GameFlow"
-    bl_description = "Repair stale runtime state, reapply the GameFlow keymap, and restart navigation if needed"
 
     def execute(self, context):
         prefs = get_prefs(context)
         if prefs is None:
-            self.report({'ERROR'}, "GameFlow preferences are unavailable")
             return {'CANCELLED'}
+        prefs.enabled = True
+        if prefs.safe_mode:
+            state.stop_requested = True
+            save_preferences()
+            self.report({'INFO'}, "Safe Mode is healthy; Blender controls remain untouched")
+            return {'FINISHED'}
         try:
-            prefs.enabled = True
             apply_gameflow_keymap(prefs.keymap_mode)
             if state.running and not state.is_alive():
                 state.clear_running()
@@ -150,6 +164,7 @@ class WM_OT_gameflow_reset_settings(Operator):
             return {'CANCELLED'}
         prefs.creator_mode = 'NAVIGATE'
         prefs.hud_mode = 'FULL'
+        prefs.safe_mode = False
         prefs.preset = 'GAMEFLOW'
         for name, value in PRESETS['GAMEFLOW'].items():
             setattr(prefs, name, value)
@@ -162,6 +177,8 @@ class WM_OT_gameflow_reset_settings(Operator):
         prefs.restore_cursor_after_look = True
         prefs.build_grid_step = 1.0
         prefs.build_rotation_step = 45.0
+        prefs.placement_grid_snap = True
+        prefs.placement_continuous = True
         prefs.auto_start = True
         prefs.restart_after_file_load = True
         save_preferences()
@@ -190,6 +207,7 @@ class WM_OT_gameflow_copy_diagnostics(Operator):
             f"Blender: {bpy.app.version_string}",
             f"OS: {platform.system()} {platform.release()}",
             f"GameFlow enabled: {bool(prefs and prefs.enabled)}",
+            f"Safe Mode: {bool(prefs and prefs.safe_mode)}",
             f"Navigation alive: {state.is_alive()}",
             f"Creator mode: {prefs.creator_mode if prefs else 'unavailable'}",
             f"HUD mode: {prefs.hud_mode if prefs else 'unavailable'}",
@@ -197,9 +215,8 @@ class WM_OT_gameflow_copy_diagnostics(Operator):
             f"Keymap mode: {prefs.keymap_mode if prefs else 'unavailable'}",
             f"Build step: {prefs.build_grid_step if prefs else 'unavailable'}",
             f"Rotation step: {prefs.build_rotation_step if prefs else 'unavailable'}",
-            f"Unlimited RMB look: {bool(prefs and prefs.edge_wrap_look)}",
-            f"Reconnect after file load: {bool(prefs and prefs.restart_after_file_load)}",
-            f"Auto-start: {bool(prefs and prefs.auto_start)}",
+            f"Placement snap: {bool(prefs and prefs.placement_grid_snap)}",
+            f"Continuous placement: {bool(prefs and prefs.placement_continuous)}",
         ]
         context.window_manager.clipboard = "\n".join(lines)
         self.report({'INFO'}, "GameFlow diagnostics copied")
@@ -214,9 +231,13 @@ def _draw_preset_help(layout):
     box.label(text="Minecraft — tighter keyboard + mouse response")
     box.label(text="Steam Controller — smoother values for a gamepad")
     box.separator()
-    box.label(text="Steam Input is the controller mapper, not a preset.")
-    box.label(text="Use Steam Input to map your controller to GameFlow keys.")
-    box.label(text="Then choose Steam Controller for controller-friendly tuning.")
+    box.label(text="Steam Input maps the controller; it is not a preset.")
+
+
+def _placement_button(row, primitive, label, continuous):
+    op = row.operator("gameflow.place_primitive", text=label)
+    op.primitive = primitive
+    op.continuous = continuous
 
 
 class VIEW3D_PT_gameflow(Panel):
@@ -241,11 +262,15 @@ class VIEW3D_PT_gameflow(Panel):
 
         status = layout.box()
         if prefs.enabled:
-            alive = state.is_alive()
-            row = status.row(align=True)
-            row.label(text="READY" if alive else "PAUSED", icon='CHECKMARK' if alive else 'PAUSE')
-            row.label(text=prefs.preset.title())
-            status.operator("wm.gameflow_toggle_navigation", text="Pause Navigation (F8)" if alive else "Resume Navigation (F8)", icon='PAUSE' if alive else 'PLAY')
+            if prefs.safe_mode:
+                status.label(text="SAFE MODE — Blender controls active", icon='SHIELD')
+                status.operator("gameflow.safe_mode", text="Exit Safe Mode")
+            else:
+                alive = state.is_alive()
+                row = status.row(align=True)
+                row.label(text="READY" if alive else "PAUSED", icon='CHECKMARK' if alive else 'PAUSE')
+                row.label(text=prefs.preset.title())
+                status.operator("wm.gameflow_toggle_navigation", text="Pause Navigation (F8)" if alive else "Resume Navigation (F8)")
         else:
             status.label(text="Make Blender feel familiar in one click.", icon='INFO')
             status.operator("wm.gameflow_enable", text="Enable GameFlow", icon='PLAY')
@@ -257,8 +282,6 @@ class VIEW3D_PT_gameflow(Panel):
         hud_box = layout.box()
         hud_box.label(text="Dark Viewport HUD", icon='OVERLAY')
         hud_box.prop(prefs, "hud_mode", expand=True)
-        if prefs.hud_mode != 'OFF':
-            hud_box.label(text="Dark HUD overlays the viewport only; Blender's theme is untouched.")
 
         if prefs.creator_mode == 'NAVIGATE':
             quick = layout.box()
@@ -267,68 +290,63 @@ class VIEW3D_PT_gameflow(Panel):
             row = quick.row(align=True)
             row.prop(prefs, "movement_speed", text="Speed")
             row.prop(prefs, "look_sensitivity", text="Look")
-            quick.prop(prefs, "show_preset_help", text="What do these presets mean?", toggle=True)
+            quick.prop(prefs, "show_preset_help", text="Preset guide", toggle=True)
             if prefs.show_preset_help:
                 _draw_preset_help(quick)
 
         elif prefs.creator_mode == 'BUILD':
             build = layout.box()
-            build.label(text="Build", icon='MOD_BUILD')
+            build.label(text="Placement", icon='OBJECT_DATA')
+            build.label(text="Move mouse → preview · Click → place · R → rotate · Esc/RMB → exit")
+            row = build.row(align=True)
+            _placement_button(row, 'CUBE', 'Cube', prefs.placement_continuous)
+            _placement_button(row, 'CYLINDER', 'Cylinder', prefs.placement_continuous)
+            _placement_button(row, 'SPHERE', 'Sphere', prefs.placement_continuous)
+            row = build.row(align=True)
+            _placement_button(row, 'PLANE', 'Plane', prefs.placement_continuous)
+            _placement_button(row, 'CONE', 'Cone', prefs.placement_continuous)
+            row = build.row(align=True)
+            row.prop(prefs, "placement_grid_snap", text="Grid Snap")
+            row.prop(prefs, "placement_continuous", text="Keep Placing")
+
+            build.separator()
             tools = build.row(align=True)
             for tool, label in [('SELECT', 'Select'), ('MOVE', 'Move'), ('ROTATE', 'Rotate'), ('SCALE', 'Scale')]:
                 op = tools.operator("gameflow.set_tool", text=label)
                 op.tool = tool
 
-            build.label(text="Add")
-            row = build.row(align=True)
-            for primitive, label in [('CUBE', 'Cube'), ('CYLINDER', 'Cylinder'), ('SPHERE', 'Sphere')]:
-                op = row.operator("gameflow.add_primitive", text=label)
-                op.primitive = primitive
-            row = build.row(align=True)
-            for primitive, label in [('PLANE', 'Plane'), ('CONE', 'Cone')]:
-                op = row.operator("gameflow.add_primitive", text=label)
-                op.primitive = primitive
-
-            build.separator()
             row = build.row(align=True)
             row.prop(prefs, "build_grid_step", text="Step")
             row.prop(prefs, "build_rotation_step", text="Rotate")
-            build.operator("gameflow.toggle_snap", text="Toggle Grid Snap", icon='SNAP_INCREMENT')
+            build.operator("gameflow.toggle_snap", text="Toggle Blender Grid Snap", icon='SNAP_INCREMENT')
 
             build.label(text="Nudge")
             row = build.row(align=True)
             for axis in ('X', 'Y', 'Z'):
-                op = row.operator("gameflow.nudge", text=f"-{axis}")
-                op.axis = axis
-                op.direction = -1
-                op = row.operator("gameflow.nudge", text=f"+{axis}")
-                op.axis = axis
-                op.direction = 1
+                for direction, label in ((-1, f'-{axis}'), (1, f'+{axis}')):
+                    op = row.operator("gameflow.nudge", text=label)
+                    op.axis = axis
+                    op.direction = direction
 
             build.label(text="Rotate Step")
             row = build.row(align=True)
             for axis in ('X', 'Y', 'Z'):
-                op = row.operator("gameflow.rotate_step", text=f"{axis}-")
-                op.axis = axis
-                op.direction = -1
-                op = row.operator("gameflow.rotate_step", text=f"{axis}+")
-                op.axis = axis
-                op.direction = 1
+                for direction, label in ((-1, f'{axis}-'), (1, f'{axis}+')):
+                    op = row.operator("gameflow.rotate_step", text=label)
+                    op.axis = axis
+                    op.direction = direction
 
-            build.label(text="Duplicate")
             row = build.row(align=True)
             for axis in ('X', 'Y', 'Z'):
                 op = row.operator("gameflow.duplicate_offset", text=f"Copy +{axis}")
                 op.axis = axis
-
             row = build.row(align=True)
-            row.operator("gameflow.drop_to_floor", text="Drop to Floor", icon='TRIA_DOWN')
-            row.operator("gameflow.focus_selected", text="Focus", icon='VIEWZOOM')
+            row.operator("gameflow.drop_to_floor", text="Drop to Floor")
+            row.operator("gameflow.focus_selected", text="Focus")
 
         elif prefs.creator_mode == 'PAINT':
             paint = layout.box()
             paint.label(text="Quick Materials", icon='MATERIAL')
-            paint.label(text="Select an object, then choose a material feel.")
             row = paint.row(align=True)
             for material in ('PLASTIC', 'METAL', 'MATTE'):
                 op = row.operator("gameflow.quick_material", text=material.title())
@@ -338,69 +356,60 @@ class VIEW3D_PT_gameflow(Panel):
                 op = row.operator("gameflow.quick_material", text=material.title())
                 op.material = material
 
+        health = layout.box()
+        health.prop(prefs, "show_health", text="Health & Safety", toggle=True, icon='SHIELD')
+        if prefs.show_health:
+            health.operator("gameflow.health_check", text="Run Health Check", icon='CHECKMARK')
+            health.operator("gameflow.safe_mode", text="Exit Safe Mode" if prefs.safe_mode else "Enter Safe Mode")
+            health.label(text="Safe Mode keeps Creator tools but restores Blender controls.")
+
         controls = layout.box()
         controls.prop(prefs, "show_controls", text="Navigation Controls", toggle=True, icon='EVENT_W')
         if prefs.show_controls:
             grid = controls.grid_flow(columns=2, even_columns=True, align=True)
-            for key, action in [('WASD', 'Move'), ('Q / E', 'Down / Up'), ('Hold RMB', 'Look + Boost'), ('Shift', 'Sprint'), ('Scroll', 'Zoom'), ('Double RMB', 'Context'), ('F', 'Frame Selected'), ('F8', 'Pause / Resume')]:
+            for key, action in [('WASD', 'Move'), ('Q / E', 'Down / Up'), ('Hold RMB', 'Look + Boost'), ('Shift', 'Sprint'), ('Scroll', 'Zoom'), ('F8', 'Pause / Resume')]:
                 grid.label(text=key)
                 grid.label(text=action)
 
         controller = layout.box()
         controller.prop(prefs, "show_controller", text="Controller / Steam Input", toggle=True, icon='GAME')
         if prefs.show_controller:
-            controller.label(text="Steam Input maps your physical controller to keys/mouse.")
-            controller.label(text="The Steam Controller preset only changes GameFlow's feel.")
-            controller.label(text="For controller use: enable Steam Input, then try the Steam preset.")
+            controller.label(text="Steam Input maps your controller to GameFlow keys/mouse.")
+            controller.label(text="The Steam Controller preset changes feel only.")
             controller.operator("wm.gameflow_copy_steam_mapping", icon='COPYDOWN')
 
         advanced = layout.box()
         advanced.prop(prefs, "show_advanced", text="Advanced Settings", toggle=True, icon='SETTINGS')
         if prefs.show_advanced:
-            advanced.label(text="Input")
             advanced.prop(prefs, "keymap_mode")
             advanced.prop(prefs, "vertical_mode")
             advanced.prop(prefs, "rmb_speed_multiplier")
             advanced.prop(prefs, "sprint_multiplier")
-            advanced.separator()
-            advanced.label(text="Motion")
             advanced.prop(prefs, "smooth_movement")
             if prefs.smooth_movement:
                 advanced.prop(prefs, "acceleration")
                 advanced.prop(prefs, "deceleration")
             advanced.prop(prefs, "wheel_zoom_factor")
-            advanced.separator()
-            advanced.label(text="Look")
             advanced.prop(prefs, "invert_x")
             advanced.prop(prefs, "invert_y")
             advanced.prop(prefs, "invert_zoom")
-            advanced.prop(prefs, "double_click_time")
             advanced.prop(prefs, "edge_wrap_look")
             if prefs.edge_wrap_look:
                 advanced.prop(prefs, "edge_wrap_margin")
                 advanced.prop(prefs, "restore_cursor_after_look")
-            advanced.separator()
-            advanced.label(text="Startup")
             advanced.prop(prefs, "auto_start")
             advanced.prop(prefs, "restart_after_file_load")
 
         support = layout.box()
         support.prop(prefs, "show_support", text="Support & Recovery", toggle=True, icon='TOOL_SETTINGS')
         if prefs.show_support:
-            if prefs.enabled and not state.is_alive():
-                warning = support.box()
-                warning.label(text="Navigation is not currently running.", icon='ERROR')
-                warning.operator("wm.gameflow_repair", text="Repair GameFlow", icon='FILE_REFRESH')
-            else:
-                support.operator("wm.gameflow_repair", text="Repair GameFlow", icon='FILE_REFRESH')
+            support.operator("wm.gameflow_repair", text="Repair GameFlow", icon='FILE_REFRESH')
             support.operator("wm.gameflow_copy_diagnostics", icon='COPYDOWN')
-            support.separator()
             support.operator("wm.gameflow_reapply_keymap")
             support.operator("wm.gameflow_restore_saved")
             support.operator("wm.gameflow_reset_settings")
             if prefs.enabled:
-                support.separator()
-                support.operator("wm.gameflow_disable", text="Disable + Restore Blender Controls", icon='LOOP_BACK')
+                support.operator("wm.gameflow_disable", text="Disable + Restore Blender Controls")
             support.label(text=f"Backup: {backup_path().name}")
 
 
