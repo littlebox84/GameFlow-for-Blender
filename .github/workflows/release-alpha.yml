@@ -25,32 +25,33 @@ jobs:
       - name: Build Blender install ZIP
         run: |
           mkdir -p dist
-          zip -r dist/GameFlow-for-Blender-v0.5.1-alpha.zip gameflow_blender
-          sha256sum dist/GameFlow-for-Blender-v0.5.1-alpha.zip > dist/GameFlow-for-Blender-v0.5.1-alpha.sha256
+          zip -r dist/GameFlow-for-Blender-v0.5.2-alpha.zip gameflow_blender
+          sha256sum dist/GameFlow-for-Blender-v0.5.2-alpha.zip > dist/GameFlow-for-Blender-v0.5.2-alpha.sha256
 
       - name: Publish alpha release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.5.1-alpha
-          name: GameFlow for Blender v0.5.1-alpha
+          tag_name: v0.5.2-alpha
+          name: GameFlow for Blender v0.5.2-alpha
           prerelease: true
           generate_release_notes: true
           body: |
-            # GameFlow for Blender v0.5.1-alpha
+            # GameFlow for Blender v0.5.2-alpha
 
             **From player to creator.**
 
-            GameFlow 0.5.1 is a Blender 5.x registration/reload hotfix on top of the Placement & Stability update.
+            Blender 5.0.5 registration hotfix #2.
 
             Fixes:
-            - Fixes `already registered as a subclass 'GAMEFLOW_Preferences'` when Blender retains stale GameFlow RNA classes during add-on reinstall/update/reload
-            - Adds package-level stale-class cleanup before registration
-            - Cleanup covers GameFlow Preferences, navigation, Build tools, placement, health, and UI classes rather than only the first failing class
-            - Keeps the v0.5 ghost placement, surface placement, Safe Mode, Health Check, dark HUD, Creator Modes, keymap safety, and controller guidance intact
+            - Adds direct scanning of `AddonPreferences.__subclasses__()` for stale GameFlow preference classes
+            - Removes old GameFlow AddonPreferences even when Blender does not expose them through `bpy.types`
+            - Retries preferences registration once after stale-class cleanup when Blender reports `already registered as a subclass`
+            - Keeps the package-level cleanup for all other GameFlow RNA classes
+            - Retains all v0.5 Placement & Stability features
 
-            This is still a public alpha. Python syntax is automatically validated before packaging. Blender 5.x install/update/reload behavior should still be tested on real installations.
+            This build specifically targets the repeated `GAMEFLOW_Preferences` registration failure observed on Blender 5.0.5 during legacy add-on reinstall/update cycles.
 
-            Install by downloading `GameFlow-for-Blender-v0.5.1-alpha.zip`, then in Blender use **Edit → Preferences → Add-ons → Install from Disk**. Do not extract the ZIP first.
+            Install by downloading `GameFlow-for-Blender-v0.5.2-alpha.zip`, fully closing Blender, reopening it, then using **Edit → Preferences → Add-ons → Install from Disk**. Do not extract the ZIP.
           files: |
-            dist/GameFlow-for-Blender-v0.5.1-alpha.zip
-            dist/GameFlow-for-Blender-v0.5.1-alpha.sha256
+            dist/GameFlow-for-Blender-v0.5.2-alpha.zip
+            dist/GameFlow-for-Blender-v0.5.2-alpha.sha256
