@@ -27,6 +27,11 @@ class GAMEFLOW_Preferences(AddonPreferences):
     bl_idname = ADDON_ID
 
     enabled: BoolProperty(name="Full GameFlow Controls Enabled", default=False)
+    safe_mode: BoolProperty(
+        name="Safe Mode",
+        description="Use Creator tools while leaving Blender's normal key bindings active",
+        default=False,
+    )
     creator_mode: EnumProperty(
         name="Creator Mode",
         items=[
@@ -86,8 +91,10 @@ class GAMEFLOW_Preferences(AddonPreferences):
     edge_wrap_margin: IntProperty(name="Look Edge Margin", default=42, min=10, max=200)
     restore_cursor_after_look: BoolProperty(name="Return Cursor After RMB Look", default=True)
 
-    build_grid_step: FloatProperty(name="Build Step", description="Distance used by GameFlow nudge and duplicate tools", default=1.0, min=0.01, max=100.0, precision=2)
-    build_rotation_step: FloatProperty(name="Rotation Step", description="Degrees used by GameFlow step rotation", default=45.0, min=1.0, max=180.0, precision=1)
+    build_grid_step: FloatProperty(name="Build Step", description="Distance used by GameFlow nudge, duplicate, and placement tools", default=1.0, min=0.01, max=100.0, precision=2)
+    build_rotation_step: FloatProperty(name="Rotation Step", description="Degrees used by GameFlow step rotation and placement rotation", default=45.0, min=1.0, max=180.0, precision=1)
+    placement_grid_snap: BoolProperty(name="Placement Grid Snap", description="Snap ghost placement to the GameFlow Build Step", default=True)
+    placement_continuous: BoolProperty(name="Continuous Placement", description="Keep placing copies until Escape or Right Click", default=True)
 
     auto_start: BoolProperty(name="Auto-start When Blender Opens", default=True)
     restart_after_file_load: BoolProperty(name="Reconnect After Opening/New Project", default=True)
@@ -99,6 +106,7 @@ class GAMEFLOW_Preferences(AddonPreferences):
     show_advanced: BoolProperty(name="Advanced Settings", default=False)
     show_support: BoolProperty(name="Support & Recovery", default=False)
     show_preset_help: BoolProperty(name="What do these presets mean?", default=False)
+    show_health: BoolProperty(name="Health & Safety", default=True)
 
     def draw(self, context):
         layout = self.layout
@@ -107,6 +115,7 @@ class GAMEFLOW_Preferences(AddonPreferences):
         layout.separator()
         layout.prop(self, "creator_mode")
         layout.prop(self, "hud_mode")
+        layout.prop(self, "safe_mode")
 
         col = layout.column(align=True)
         col.prop(self, "preset")
@@ -117,6 +126,8 @@ class GAMEFLOW_Preferences(AddonPreferences):
         build.label(text="Creator Build")
         build.prop(self, "build_grid_step")
         build.prop(self, "build_rotation_step")
+        build.prop(self, "placement_grid_snap")
+        build.prop(self, "placement_continuous")
 
         behavior = layout.box()
         behavior.label(text="Behavior")
