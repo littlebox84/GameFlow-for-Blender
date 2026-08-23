@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.1 — Blender 5.x registration hotfix
+
+- Fixed `RuntimeError: register_class(...): already registered as a subclass 'GAMEFLOW_Preferences'` during some Blender 5.x add-on reinstall/update/reload cycles.
+- Added package-level cleanup for stale GameFlow RNA classes before registration.
+- Cleanup covers GameFlow Preferences, navigation operators, Build tools, placement tools, Health Check/Safe Mode classes, and the GameFlow UI panel.
+- Normal first-time registration remains unchanged; cleanup is a no-op when no stale GameFlow classes are present.
+- Kept the full 0.5 Placement & Stability feature set intact.
+
 ## 0.5.0 — Placement & Stability
 
 - Added **ghost-preview object placement** in Build mode for Cube, Cylinder, Sphere, Plane, and Cone.
@@ -32,25 +40,3 @@
 - Added beginner-friendly object creation and manipulation tools.
 - Added configurable Build Step and Rotation Step.
 - Added X/Y/Z nudging, stepped rotation, Duplicate + Offset, Drop to Floor, Focus Selected, snapping, and quick material presets.
-
-## 0.3.0 — UI and core safety
-
-- Redesigned the GameFlow sidebar around a simpler first-use flow.
-- Added READY / PAUSED runtime status and Repair GameFlow.
-- Fixed modified-key capture so Ctrl/Alt/OS shortcuts pass through normally.
-- Added focus-loss protection to prevent stuck movement.
-
-## 0.2.1 — Mouse-look and support polish
-
-- Added Unlimited RMB Look with pointer recentering.
-- Added optional Return Cursor After RMB Look.
-- Added Copy Diagnostics.
-
-## 0.2.0 — Public alpha
-
-- Consolidated the project as **GameFlow for Blender — From player to creator.**
-- Added one-click GameFlow enable workflow, keymap backup/restore, file-load recovery, WASD + Q/E navigation, RMB mouse-look, sprint, wheel zoom, presets, Steam Input guidance, and recovery tools.
-
-## 0.1.0 — Prototype
-
-- Initial branded GameFlow beta based on the Kid Mode navigation prototype.
