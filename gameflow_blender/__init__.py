@@ -1,7 +1,7 @@
 bl_info = {
     "name": "GameFlow for Blender",
     "author": "Jared + OpenAI",
-    "version": (0, 5, 0),
+    "version": (0, 5, 1),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar > GameFlow",
     "description": "From player to creator — game-style navigation, ghost placement, creator tools, health checks, and a dark viewport HUD",
@@ -22,7 +22,43 @@ from . import keymap
 from . import lifecycle
 
 
+_CLASS_MODULES = (
+    preferences,
+    navigation,
+    build_tools,
+    placement,
+    health,
+    ui,
+)
+
+
+def _cleanup_stale_registered_classes():
+    """Best-effort cleanup for Blender add-on reload/update cycles.
+
+    Blender 5.x can leave RNA subclasses registered when a legacy add-on is
+    reinstalled or reloaded before its previous module instance fully
+    unregisters. Registering the replacement class then raises:
+    "already registered as a subclass".
+
+    We only touch class names owned by GameFlow's own module-level `classes`
+    tuples. Normal first-time registration finds nothing and is a no-op.
+    """
+    for module in reversed(_CLASS_MODULES):
+        for cls in reversed(getattr(module, "classes", ())):
+            registered = getattr(bpy.types, cls.__name__, None)
+            if registered is None:
+                continue
+            try:
+                bpy.utils.unregister_class(registered)
+            except (RuntimeError, ValueError, ReferenceError):
+                pass
+
+
 def register():
+    # Repair stale RNA classes before registering this module generation.
+    # This makes install/update/reload behavior much safer on Blender 5.x.
+    _cleanup_stale_registered_classes()
+
     preferences.register()
     navigation.register()
     build_tools.register()
