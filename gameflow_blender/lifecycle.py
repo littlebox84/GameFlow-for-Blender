@@ -4,12 +4,13 @@ from bpy.app.handlers import persistent
 from . import state
 from .preferences import get_prefs
 from .navigation import start_navigation
-from .keymap import apply_gameflow_keymap
+from .keymap import apply_gameflow_keymap, restore_saved_controls
+from .placement import cleanup_preview_objects
 
 
 def _delayed_start():
     prefs = get_prefs()
-    if not prefs or not prefs.enabled or not prefs.auto_start:
+    if not prefs or not prefs.enabled or prefs.safe_mode or not prefs.auto_start:
         return None
     if start_navigation():
         return None
@@ -18,7 +19,7 @@ def _delayed_start():
 
 def _delayed_restart_after_load():
     prefs = get_prefs()
-    if not prefs or not prefs.enabled or not prefs.restart_after_file_load:
+    if not prefs or not prefs.enabled or prefs.safe_mode or not prefs.restart_after_file_load:
         state.restart_after_load = False
         return None
     if start_navigation():
@@ -31,19 +32,27 @@ def _delayed_restart_after_load():
 def gameflow_load_pre(_dummy):
     prefs = get_prefs()
     state.restart_after_load = bool(
-        prefs and prefs.enabled and prefs.restart_after_file_load
+        prefs and prefs.enabled and not prefs.safe_mode and prefs.restart_after_file_load
     )
     state.clear_running()
+    cleanup_preview_objects()
 
 
 @persistent
 def gameflow_load_post(_dummy):
+    cleanup_preview_objects()
     prefs = get_prefs()
     if prefs and prefs.enabled:
-        try:
-            apply_gameflow_keymap(prefs.keymap_mode)
-        except Exception:
-            pass
+        if prefs.safe_mode:
+            try:
+                restore_saved_controls(delete_backup=False)
+            except Exception:
+                pass
+        else:
+            try:
+                apply_gameflow_keymap(prefs.keymap_mode)
+            except Exception:
+                pass
 
     if state.restart_after_load and not bpy.app.timers.is_registered(_delayed_restart_after_load):
         bpy.app.timers.register(_delayed_restart_after_load, first_interval=0.45)
@@ -55,8 +64,9 @@ def register_handlers():
     if gameflow_load_post not in bpy.app.handlers.load_post:
         bpy.app.handlers.load_post.append(gameflow_load_post)
 
+    cleanup_preview_objects()
     prefs = get_prefs()
-    if prefs and prefs.enabled and prefs.auto_start and not bpy.app.timers.is_registered(_delayed_start):
+    if prefs and prefs.enabled and not prefs.safe_mode and prefs.auto_start and not bpy.app.timers.is_registered(_delayed_start):
         bpy.app.timers.register(_delayed_start, first_interval=0.5)
 
 
@@ -69,3 +79,4 @@ def unregister_handlers():
         bpy.app.timers.unregister(_delayed_start)
     if bpy.app.timers.is_registered(_delayed_restart_after_load):
         bpy.app.timers.unregister(_delayed_restart_after_load)
+    cleanup_preview_objects()
