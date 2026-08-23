@@ -35,8 +35,10 @@ def health_snapshot(context=None):
 
 def health_text(context=None):
     data = health_snapshot(context)
+
     def mark(value):
         return 'OK' if value else 'CHECK'
+
     return '\n'.join([
         f"Blender version: {mark(data['version_ok'])}",
         f"3D Viewport: {mark(data['has_view3d'])}",
@@ -59,8 +61,10 @@ class GAMEFLOW_OT_health_check(Operator):
         context.window_manager.clipboard = text
         snapshot = health_snapshot(context)
         problems = sum(1 for key in ('version_ok', 'has_view3d', 'preferences') if not snapshot[key])
-        self.report({'WARNING'} if problems else {'INFO'},
-                    'Health check found items to review; details copied' if problems else 'GameFlow health check OK; details copied')
+        self.report(
+            {'WARNING'} if problems else {'INFO'},
+            'Health check found items to review; details copied' if problems else 'GameFlow health check OK; details copied',
+        )
         return {'FINISHED'}
 
 
@@ -75,15 +79,16 @@ class GAMEFLOW_OT_safe_mode(Operator):
             return {'CANCELLED'}
 
         if not prefs.safe_mode:
-            try:
-                restore_saved_controls(delete_backup=False)
-            except Exception as exc:
-                self.report({'ERROR'}, f'Could not restore Blender controls: {exc}')
-                return {'CANCELLED'}
+            if prefs.enabled and backup_path().exists():
+                try:
+                    restore_saved_controls(delete_backup=False)
+                except Exception as exc:
+                    self.report({'ERROR'}, f'Could not restore Blender controls: {exc}')
+                    return {'CANCELLED'}
             prefs.safe_mode = True
             state.stop_requested = True
             save_preferences()
-            self.report({'INFO'}, 'Safe Mode ON: Blender controls restored; Creator tools remain available')
+            self.report({'INFO'}, 'Safe Mode ON: Blender controls active; Creator tools remain available')
             return {'FINISHED'}
 
         prefs.safe_mode = False
