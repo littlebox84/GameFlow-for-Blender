@@ -1,7 +1,7 @@
 bl_info = {
     "name": "GameFlow for Blender",
     "author": "Jared + OpenAI",
-    "version": (0, 5, 2),
+    "version": (0, 5, 3),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar > GameFlow",
     "description": "From player to creator — game-style navigation, ghost placement, creator tools, health checks, and a dark viewport HUD",
@@ -46,12 +46,7 @@ def _cleanup_stale_registered_classes():
 
 
 def register():
-    # AddonPreferences needs a stronger Blender 5.x cleanup path because a
-    # stale preferences RNA class may remain registered without being exposed
-    # as bpy.types.GAMEFLOW_Preferences.
     registration.register_preferences(preferences)
-
-    # Other GameFlow RNA types are usually discoverable through bpy.types.
     _cleanup_stale_registered_classes()
     navigation.register()
     build_tools.register()
