@@ -1,7 +1,7 @@
 bl_info = {
     "name": "GameFlow for Blender",
     "author": "Jared + OpenAI",
-    "version": (0, 5, 1),
+    "version": (0, 5, 2),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar > GameFlow",
     "description": "From player to creator — game-style navigation, ghost placement, creator tools, health checks, and a dark viewport HUD",
@@ -12,6 +12,7 @@ import bpy
 
 from . import state
 from . import preferences
+from . import registration
 from . import navigation
 from . import build_tools
 from . import placement
@@ -23,7 +24,6 @@ from . import lifecycle
 
 
 _CLASS_MODULES = (
-    preferences,
     navigation,
     build_tools,
     placement,
@@ -33,16 +33,7 @@ _CLASS_MODULES = (
 
 
 def _cleanup_stale_registered_classes():
-    """Best-effort cleanup for Blender add-on reload/update cycles.
-
-    Blender 5.x can leave RNA subclasses registered when a legacy add-on is
-    reinstalled or reloaded before its previous module instance fully
-    unregisters. Registering the replacement class then raises:
-    "already registered as a subclass".
-
-    We only touch class names owned by GameFlow's own module-level `classes`
-    tuples. Normal first-time registration finds nothing and is a no-op.
-    """
+    """Best-effort cleanup for Blender add-on reload/update cycles."""
     for module in reversed(_CLASS_MODULES):
         for cls in reversed(getattr(module, "classes", ())):
             registered = getattr(bpy.types, cls.__name__, None)
@@ -55,11 +46,13 @@ def _cleanup_stale_registered_classes():
 
 
 def register():
-    # Repair stale RNA classes before registering this module generation.
-    # This makes install/update/reload behavior much safer on Blender 5.x.
-    _cleanup_stale_registered_classes()
+    # AddonPreferences needs a stronger Blender 5.x cleanup path because a
+    # stale preferences RNA class may remain registered without being exposed
+    # as bpy.types.GAMEFLOW_Preferences.
+    registration.register_preferences(preferences)
 
-    preferences.register()
+    # Other GameFlow RNA types are usually discoverable through bpy.types.
+    _cleanup_stale_registered_classes()
     navigation.register()
     build_tools.register()
     placement.register()
