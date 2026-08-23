@@ -1,10 +1,10 @@
 bl_info = {
     "name": "GameFlow for Blender",
     "author": "Jared + OpenAI",
-    "version": (0, 4, 1),
+    "version": (0, 5, 0),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar > GameFlow",
-    "description": "From player to creator — game-style navigation, creator tools, and a dark viewport HUD",
+    "description": "From player to creator — game-style navigation, ghost placement, creator tools, health checks, and a dark viewport HUD",
     "category": "3D View",
 }
 
@@ -14,6 +14,8 @@ from . import state
 from . import preferences
 from . import navigation
 from . import build_tools
+from . import placement
+from . import health
 from . import hud
 from . import ui
 from . import keymap
@@ -24,6 +26,8 @@ def register():
     preferences.register()
     navigation.register()
     build_tools.register()
+    placement.register()
+    health.register()
     hud.register()
     ui.register()
     keymap.register_addon_keymaps()
@@ -47,6 +51,8 @@ def unregister():
 
     ui.unregister()
     hud.unregister()
+    health.unregister()
+    placement.unregister()
     build_tools.unregister()
     navigation.unregister()
     preferences.unregister()
