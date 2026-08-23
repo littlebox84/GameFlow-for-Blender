@@ -4,7 +4,6 @@ import bpy
 from bpy.props import BoolProperty, EnumProperty
 from bpy.types import Operator
 from bpy_extras import view3d_utils
-from mathutils import Vector
 
 from .preferences import get_prefs
 
@@ -103,7 +102,7 @@ class GAMEFLOW_OT_place_primitive(Operator):
         target = _find_view3d(context, event)
         if target is None:
             return None
-        area, region, space, rv3d = target
+        _area, region, _space, rv3d = target
         coord = (event.mouse_x - region.x, event.mouse_y - region.y)
         origin = view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
         direction = view3d_utils.region_2d_to_vector_3d(region, rv3d, coord).normalized()
@@ -144,7 +143,8 @@ class GAMEFLOW_OT_place_primitive(Operator):
         self._preview.display_type = 'TEXTURED'
         self._preview.show_in_front = False
         self._preview.hide_render = False
-        self._preview.pop('gameflow_preview', None)
+        if 'gameflow_preview' in self._preview:
+            del self._preview['gameflow_preview']
         self._preview.name = f'GF_{self.primitive.title()}'
         self._preview = None
         if self.continuous:
