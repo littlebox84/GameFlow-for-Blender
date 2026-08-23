@@ -25,37 +25,42 @@ jobs:
       - name: Build Blender install ZIP
         run: |
           mkdir -p dist
-          zip -r dist/GameFlow-for-Blender-v0.5.0-alpha.zip gameflow_blender
-          sha256sum dist/GameFlow-for-Blender-v0.5.0-alpha.zip > dist/GameFlow-for-Blender-v0.5.0-alpha.sha256
+          zip -r dist/GameFlow-for-Blender-v0.5.0-alpha2.zip gameflow_blender
+          sha256sum dist/GameFlow-for-Blender-v0.5.0-alpha2.zip > dist/GameFlow-for-Blender-v0.5.0-alpha2.sha256
 
       - name: Publish alpha release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.5.0-alpha
-          name: GameFlow for Blender v0.5.0-alpha
+          tag_name: v0.5.0-alpha2
+          name: GameFlow for Blender v0.5.0-alpha2
           prerelease: true
           generate_release_notes: true
           body: |
-            # GameFlow for Blender v0.5.0-alpha
+            # GameFlow for Blender v0.5.0-alpha2
 
             **From player to creator.**
 
-            GameFlow 0.5 is the Placement & Stability update.
+            GameFlow 0.5 alpha2 is the hardened Placement & Stability build.
 
             Highlights:
-            - Ghost-preview object placement for Cube, Cylinder, Sphere, Plane, and Cone
-            - Scene surface targeting with world-floor fallback
+            - Ghost-preview placement for Cube, Cylinder, Sphere, Plane, and Cone
+            - Surface-aware placement that rests objects against hit geometry instead of embedding their centers
+            - World-floor fallback when no scene surface is hit
             - Placement Grid Snap using the GameFlow Build Step
             - Continuous Placement mode
             - R-to-rotate preview using the configured Rotation Step
-            - New GameFlow Health Check
-            - New Safe Mode that restores normal Blender controls while keeping Creator tools available
-            - Dark HUD now shows SAFE status and placement settings
+            - Orphan preview cleanup across register/unregister and file-load transitions
+            - Placement limited to Object Mode for predictable behavior
+            - GameFlow Health Check
+            - Safe Mode that restores normal Blender controls while keeping Creator tools available
+            - Safe Mode persists correctly across project loads
+            - Dark HUD SAFE state and placement information
+            - Expanded placement/stability test matrix
             - Existing Explore, Build, Paint, navigation safety, keymap backup/restore, Repair GameFlow, presets, and Steam Input guidance remain intact
 
-            This is still a public alpha. Syntax is automatically validated here, but the new placement workflow needs real Blender testing across supported versions and different scenes.
+            This is still a public alpha. Python syntax is automatically validated before packaging, but the placement workflow still needs real Blender testing across supported versions and different scenes.
 
-            Install by downloading `GameFlow-for-Blender-v0.5.0-alpha.zip`, then in Blender use **Edit → Preferences → Add-ons → Install from Disk**. Do not extract the ZIP first.
+            Install by downloading `GameFlow-for-Blender-v0.5.0-alpha2.zip`, then in Blender use **Edit → Preferences → Add-ons → Install from Disk**. Do not extract the ZIP first.
           files: |
-            dist/GameFlow-for-Blender-v0.5.0-alpha.zip
-            dist/GameFlow-for-Blender-v0.5.0-alpha.sha256
+            dist/GameFlow-for-Blender-v0.5.0-alpha2.zip
+            dist/GameFlow-for-Blender-v0.5.0-alpha2.sha256
