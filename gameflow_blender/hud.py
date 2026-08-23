@@ -12,12 +12,7 @@ _draw_handle = None
 
 def _draw_rect(x, y, width, height, color):
     shader = gpu.shader.from_builtin('UNIFORM_COLOR')
-    vertices = (
-        (x, y),
-        (x + width, y),
-        (x + width, y + height),
-        (x, y + height),
-    )
+    vertices = ((x, y), (x + width, y), (x + width, y + height), (x, y + height))
     batch = batch_for_shader(shader, 'TRI_FAN', {"pos": vertices})
     gpu.state.blend_set('ALPHA')
     shader.bind()
@@ -35,11 +30,7 @@ def _text(text, x, y, size=13, color=(0.92, 0.94, 0.98, 1.0)):
 
 
 def _mode_label(mode):
-    return {
-        'NAVIGATE': 'EXPLORE',
-        'BUILD': 'BUILD',
-        'PAINT': 'PAINT',
-    }.get(mode, mode)
+    return {'NAVIGATE': 'EXPLORE', 'BUILD': 'BUILD', 'PAINT': 'PAINT'}.get(mode, mode)
 
 
 def draw_hud():
@@ -49,25 +40,30 @@ def draw_hud():
         return
     if context.area is None or context.area.type != 'VIEW_3D':
         return
-
     region = context.region
     if region is None or region.type != 'WINDOW':
         return
 
     full = prefs.hud_mode == 'FULL'
-    width = 285 if full else 220
-    height = 150 if full else 78
+    width = 300 if full else 235
+    height = 164 if full else 78
     x = 18
     y = region.height - height - 18
 
-    _draw_rect(x, y, width, height, (0.018, 0.022, 0.030, 0.86))
-    _draw_rect(x, y + height - 4, width, 4, (0.16, 0.50, 1.0, 0.95))
+    _draw_rect(x, y, width, height, (0.018, 0.022, 0.030, 0.88))
+    accent = (0.45, 0.68, 1.0, 0.95) if not prefs.safe_mode else (1.0, 0.72, 0.30, 0.95)
+    _draw_rect(x, y + height - 4, width, 4, accent)
 
-    status = 'READY' if state.is_alive() else 'PAUSED'
+    if prefs.safe_mode:
+        status = 'SAFE'
+        status_color = (1.0, 0.78, 0.38, 1.0)
+    else:
+        status = 'READY' if state.is_alive() else 'PAUSED'
+        status_color = (0.45, 1.0, 0.62, 1.0) if status == 'READY' else (1.0, 0.72, 0.35, 1.0)
+
     mode = _mode_label(prefs.creator_mode)
     _text(f"GAMEFLOW  ·  {mode}", x + 14, y + height - 27, 14)
-    _text(status, x + width - 66, y + height - 27, 12,
-          (0.45, 1.0, 0.62, 1.0) if status == 'READY' else (1.0, 0.72, 0.35, 1.0))
+    _text(status, x + width - 66, y + height - 27, 12, status_color)
 
     obj = context.view_layer.objects.active if context.view_layer else None
     selected_name = obj.name if obj and obj.select_get() else 'None'
@@ -78,22 +74,22 @@ def draw_hud():
 
     line_y = y + height - 76
     if prefs.creator_mode == 'BUILD':
-        snap = 'ON' if context.scene.tool_settings.use_snap else 'OFF'
-        _text(
-            f"Grid: {prefs.build_grid_step:g}  ·  Rotate: {prefs.build_rotation_step:g}°  ·  Snap: {snap}",
-            x + 14, line_y, 11, (0.72, 0.78, 0.88, 1.0)
-        )
+        snap = 'ON' if prefs.placement_grid_snap else 'OFF'
+        repeat = 'ON' if prefs.placement_continuous else 'OFF'
+        _text(f"Step: {prefs.build_grid_step:g}  ·  Rotate: {prefs.build_rotation_step:g}°", x + 14, line_y, 11, (0.72, 0.78, 0.88, 1.0))
+        _text(f"Placement Snap: {snap}  ·  Keep Placing: {repeat}", x + 14, line_y - 18, 11, (0.72, 0.78, 0.88, 1.0))
+        _text("Place: move mouse · click · R rotate · Esc/RMB exit", x + 14, y + 35, 10, (0.60, 0.66, 0.76, 1.0))
     elif prefs.creator_mode == 'PAINT':
-        _text("Choose a material preset from the GameFlow panel", x + 14, line_y, 11,
-              (0.72, 0.78, 0.88, 1.0))
+        _text("Choose a material preset from the GameFlow panel", x + 14, line_y, 11, (0.72, 0.78, 0.88, 1.0))
+        _text("Plastic · Metal · Matte · Glass · Glow", x + 14, y + 35, 10, (0.60, 0.66, 0.76, 1.0))
     else:
-        _text(f"Speed: {prefs.movement_speed:g}  ·  Look: {prefs.look_sensitivity:.4f}", x + 14, line_y, 11,
-              (0.72, 0.78, 0.88, 1.0))
+        _text(f"Speed: {prefs.movement_speed:g}  ·  Look: {prefs.look_sensitivity:.4f}", x + 14, line_y, 11, (0.72, 0.78, 0.88, 1.0))
+        _text("WASD Move · RMB Look · Shift Sprint · Scroll Zoom", x + 14, y + 35, 10, (0.60, 0.66, 0.76, 1.0))
 
-    _text("WASD Move   RMB Look   Shift Sprint   Scroll Zoom", x + 14, y + 34, 10,
-          (0.60, 0.66, 0.76, 1.0))
-    _text("F Focus   F8 Pause/Resume", x + 14, y + 17, 10,
-          (0.60, 0.66, 0.76, 1.0))
+    if prefs.safe_mode:
+        _text("Safe Mode: Blender key bindings are active", x + 14, y + 17, 10, (1.0, 0.72, 0.35, 1.0))
+    else:
+        _text("F Focus · F8 Pause/Resume", x + 14, y + 17, 10, (0.60, 0.66, 0.76, 1.0))
 
 
 def enable_hud():
