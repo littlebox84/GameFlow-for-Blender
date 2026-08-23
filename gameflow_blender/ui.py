@@ -263,7 +263,7 @@ class VIEW3D_PT_gameflow(Panel):
         status = layout.box()
         if prefs.enabled:
             if prefs.safe_mode:
-                status.label(text="SAFE MODE — Blender controls active", icon='SHIELD')
+                status.label(text="SAFE MODE — Blender controls active", icon='LOCKED')
                 status.operator("gameflow.safe_mode", text="Exit Safe Mode")
             else:
                 alive = state.is_alive()
@@ -357,7 +357,7 @@ class VIEW3D_PT_gameflow(Panel):
                 op.material = material
 
         health = layout.box()
-        health.prop(prefs, "show_health", text="Health & Safety", toggle=True, icon='SHIELD')
+        health.prop(prefs, "show_health", text="Health & Safety", toggle=True, icon='LOCKED')
         if prefs.show_health:
             health.operator("gameflow.health_check", text="Run Health Check", icon='CHECKMARK')
             health.operator("gameflow.safe_mode", text="Exit Safe Mode" if prefs.safe_mode else "Enter Safe Mode")
