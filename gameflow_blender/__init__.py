@@ -4,7 +4,7 @@ bl_info = {
     "version": (0, 5, 0),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar > GameFlow",
-    "description": "From player to creator — game-style navigation, creator tools, dark viewport HUD, health diagnostics, and Safe Mode",
+    "description": "From player to creator — game-style navigation, creator tools, dark viewport HUD, health diagnostics, Safe Mode, and Build Assist",
     "category": "3D View",
 }
 
@@ -14,6 +14,7 @@ from . import state
 from . import preferences
 from . import navigation
 from . import build_tools
+from . import build_assist
 from . import health
 from . import safe_mode
 from . import hud
@@ -30,6 +31,7 @@ def register():
     safe_mode.register()
     hud.register()
     ui.register()
+    build_assist.register()
     keymap.register_addon_keymaps()
     lifecycle.register_handlers()
 
@@ -49,6 +51,7 @@ def unregister():
         except Exception:
             pass
 
+    build_assist.unregister()
     ui.unregister()
     hud.unregister()
     safe_mode.unregister()
