@@ -60,13 +60,23 @@ class GAMEFLOW_Preferences(AddonPreferences):
         default='MINIMAL',
     )
     hud_mode: EnumProperty(
-        name="Dark Viewport HUD",
+        name="Viewport HUD",
         items=[
-            ('FULL', "Full", "Dark GameFlow HUD with mode, status, selection, build data, and control hints"),
-            ('MINIMAL', "Minimal", "Compact dark HUD with mode, status, and selected object"),
+            ('FULL', "Full", "Mode, status, selection, context data, and compact control hints"),
+            ('MINIMAL', "Minimal", "Compact mode and status HUD"),
             ('OFF', "Off", "Hide the GameFlow viewport HUD"),
         ],
         default='FULL',
+    )
+    hud_corner: EnumProperty(
+        name="HUD Corner",
+        items=[
+            ('TOP_RIGHT', "Top Right", "Keep the HUD away from Blender's left toolbar"),
+            ('BOTTOM_RIGHT', "Bottom Right", "Place the HUD above the lower-right viewport edge"),
+            ('BOTTOM_LEFT', "Bottom Left", "Place the HUD above the timeline side of the viewport"),
+            ('TOP_LEFT', "Top Left", "Place the HUD in the upper-left corner"),
+        ],
+        default='TOP_RIGHT',
     )
 
     movement_speed: FloatProperty(name="Walk Speed", default=4.0, min=0.05, max=100.0)
@@ -107,6 +117,8 @@ class GAMEFLOW_Preferences(AddonPreferences):
         layout.separator()
         layout.prop(self, "creator_mode")
         layout.prop(self, "hud_mode")
+        if self.hud_mode != 'OFF':
+            layout.prop(self, "hud_corner")
 
         col = layout.column(align=True)
         col.prop(self, "preset")
