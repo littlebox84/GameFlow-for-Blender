@@ -25,31 +25,32 @@ jobs:
       - name: Build Blender install ZIP
         run: |
           mkdir -p dist
-          zip -r dist/GameFlow-for-Blender-v0.5.4-alpha.zip gameflow_blender
-          sha256sum dist/GameFlow-for-Blender-v0.5.4-alpha.zip > dist/GameFlow-for-Blender-v0.5.4-alpha.sha256
+          zip -r dist/GameFlow-for-Blender-v0.5.5-alpha.zip gameflow_blender
+          sha256sum dist/GameFlow-for-Blender-v0.5.5-alpha.zip > dist/GameFlow-for-Blender-v0.5.5-alpha.sha256
 
       - name: Publish alpha release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.5.4-alpha
-          name: GameFlow for Blender v0.5.4-alpha
+          tag_name: v0.5.5-alpha
+          name: GameFlow for Blender v0.5.5-alpha
           prerelease: true
           generate_release_notes: true
           body: |
-            # GameFlow for Blender v0.5.4-alpha
+            # GameFlow for Blender v0.5.5-alpha
 
             **From player to creator.**
 
-            Blender 5.0.5 registration hotfix #4.
+            Blender 5.0.x compatibility hotfix #5.
 
             Fixes:
-            - Fixes `'_RestrictData' object has no attribute 'objects'` during add-on enable
-            - Prevents GameFlow placement preview cleanup from touching `bpy.data.objects` while Blender is in restricted registration state
-            - Routes both placement and lifecycle cleanup through a Blender-5-safe guard before registration
-            - Keeps the v0.5.3 idempotent AddonPreferences registration fixes
-            - Retains all Placement & Stability features
+            - Fixes the GameFlow sidebar showing `GameFlow preferences unavailable` after successful add-on registration
+            - Makes preference lookup robust to Blender 5.x legacy/extension module namespaces
+            - Resolves exact package IDs, leaf IDs, namespaced IDs, module suffix matches, and the actual GameFlow preferences RNA type
+            - Keeps the Blender 5 restricted-data startup guard from v0.5.4
+            - Keeps the idempotent AddonPreferences registration fixes from v0.5.3
+            - Retains all v0.5 Placement & Stability features
 
-            Install `GameFlow-for-Blender-v0.5.4-alpha.zip` directly with **Edit → Preferences → Add-ons → Install from Disk**. Do not extract the ZIP first.
+            Install `GameFlow-for-Blender-v0.5.5-alpha.zip` directly with **Edit → Preferences → Add-ons → Install from Disk**. Do not extract the ZIP first.
           files: |
-            dist/GameFlow-for-Blender-v0.5.4-alpha.zip
-            dist/GameFlow-for-Blender-v0.5.4-alpha.sha256
+            dist/GameFlow-for-Blender-v0.5.5-alpha.zip
+            dist/GameFlow-for-Blender-v0.5.5-alpha.sha256
