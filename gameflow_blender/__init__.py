@@ -1,10 +1,10 @@
 bl_info = {
     "name": "GameFlow for Blender",
     "author": "Jared + OpenAI",
-    "version": (0, 5, 3),
+    "version": (0, 6, 0),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar > GameFlow",
-    "description": "From player to creator — game-style navigation, creator tools, beginner Paint Studio, viewport HUD, health diagnostics, Safe Mode, and Build Assist",
+    "description": "From player to creator — game-style navigation, beginner Paint Studio, Quick Rig snap guides, creator tools, viewport HUD, health diagnostics, Safe Mode, and Build Assist",
     "category": "3D View",
 }
 
@@ -20,6 +20,7 @@ from . import safe_mode
 from . import hud
 from . import ui
 from . import paint_tools
+from . import rigging
 from . import keymap
 from . import lifecycle
 
@@ -35,6 +36,7 @@ def register():
     safe_mode.register()
     build_assist.register()
     paint_tools.register()
+    rigging.register()
     keymap.register_addon_keymaps()
     lifecycle.register_handlers()
 
@@ -54,6 +56,7 @@ def unregister():
         except Exception:
             pass
 
+    rigging.unregister()
     paint_tools.unregister()
     build_assist.unregister()
     safe_mode.unregister()
