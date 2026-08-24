@@ -7,6 +7,12 @@ on:
     paths:
       - 'gameflow_blender/**'
       - '.github/workflows/test-build.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'gameflow_blender/**'
+      - '.github/workflows/test-build.yml'
   workflow_dispatch:
 
 jobs:
