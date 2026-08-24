@@ -3,9 +3,23 @@ from bpy.types import AddonPreferences
 
 
 def is_registered_class(cls):
-    """Return True when Blender has already registered this exact class object."""
+    """Return True only when Blender registered this exact Python class.
+
+    Do not use getattr(cls, 'bl_rna'): AddonPreferences subclasses can inherit
+    Blender RNA attributes from the base class before the subclass itself has
+    been registered. Blender adds the subclass RNA metadata directly to the
+    class dictionary when registration succeeds.
+    """
     try:
-        return getattr(cls, 'bl_rna', None) is not None
+        direct_rna = cls.__dict__.get('bl_rna')
+        if direct_rna is not None:
+            return True
+    except Exception:
+        pass
+
+    # Secondary exact-object check for normal Blender RNA types.
+    try:
+        return getattr(bpy.types, cls.__name__, None) is cls
     except Exception:
         return False
 
@@ -45,13 +59,7 @@ def cleanup_stale_preferences(current_cls, addon_id):
 
 
 def register_preferences(preferences_module):
-    """Register GameFlow preferences safely across Blender install/reload cycles.
-
-    Blender's legacy Install from Disk flow may invoke register() again while
-    the exact same Python class object is already registered. In that case the
-    correct behavior is to treat registration as complete rather than calling
-    bpy.utils.register_class() a second time.
-    """
+    """Register GameFlow preferences safely across Blender install/reload cycles."""
     classes = tuple(getattr(preferences_module, 'classes', ()))
     if not classes:
         return
@@ -59,13 +67,13 @@ def register_preferences(preferences_module):
     current_cls = classes[0]
     addon_id = getattr(preferences_module, 'ADDON_ID', current_cls.__module__.split('.')[0])
 
-    # Same module/class already registered: this is an idempotent second call.
+    # Only skip when the current subclass itself is registered, not merely
+    # because it inherits RNA metadata from bpy.types.AddonPreferences.
     if is_registered_class(current_cls):
         return
 
     cleanup_stale_preferences(current_cls, addon_id)
 
-    # Cleanup may expose/leave the current class as already registered.
     if is_registered_class(current_cls):
         return
 
@@ -76,14 +84,13 @@ def register_preferences(preferences_module):
         if 'already registered as a subclass' not in str(exc):
             raise
 
-    # If Blender registered this exact class during the attempted operation,
-    # there is nothing left to do.
+    # A duplicate error can mean Blender finished registering this exact class
+    # during the operation. Verify directly before touching stale generations.
     if is_registered_class(current_cls):
         return
 
-    # Otherwise one stale RNA generation is still alive. Remove it and retry
-    # exactly once so a real unrelated error is never hidden in a loop.
     cleanup_stale_preferences(current_cls, addon_id)
     if is_registered_class(current_cls):
         return
+
     preferences_module.register()
