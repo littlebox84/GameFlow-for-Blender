@@ -25,32 +25,32 @@ jobs:
       - name: Build Blender install ZIP
         run: |
           mkdir -p dist
-          zip -r dist/GameFlow-for-Blender-v0.5.5-alpha.zip gameflow_blender
-          sha256sum dist/GameFlow-for-Blender-v0.5.5-alpha.zip > dist/GameFlow-for-Blender-v0.5.5-alpha.sha256
+          zip -r dist/GameFlow-for-Blender-v0.5.6-alpha.zip gameflow_blender
+          sha256sum dist/GameFlow-for-Blender-v0.5.6-alpha.zip > dist/GameFlow-for-Blender-v0.5.6-alpha.sha256
 
       - name: Publish alpha release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.5.5-alpha
-          name: GameFlow for Blender v0.5.5-alpha
+          tag_name: v0.5.6-alpha
+          name: GameFlow for Blender v0.5.6-alpha
           prerelease: true
           generate_release_notes: true
           body: |
-            # GameFlow for Blender v0.5.5-alpha
+            # GameFlow for Blender v0.5.6-alpha
 
             **From player to creator.**
 
-            Blender 5.0.x compatibility hotfix #5.
+            Blender 5.0.x preference registration hotfix.
 
             Fixes:
-            - Fixes the GameFlow sidebar showing `GameFlow preferences unavailable` after successful add-on registration
-            - Makes preference lookup robust to Blender 5.x legacy/extension module namespaces
-            - Resolves exact package IDs, leaf IDs, namespaced IDs, module suffix matches, and the actual GameFlow preferences RNA type
-            - Keeps the Blender 5 restricted-data startup guard from v0.5.4
-            - Keeps the idempotent AddonPreferences registration fixes from v0.5.3
-            - Retains all v0.5 Placement & Stability features
+            - Fixes GameFlow Preferences being skipped because `bl_rna` was inherited from Blender's `AddonPreferences` base class
+            - Detects registration only when RNA metadata belongs directly to the GameFlow subclass or Blender exposes that exact class object
+            - Ensures `GAMEFLOW_Preferences` is actually registered and attached to the enabled GameFlow add-on entry
+            - Keeps robust namespaced preference lookup from v0.5.5
+            - Keeps the Blender 5 restricted-data startup guard and idempotent stale-class cleanup
+            - Retains the full v0.5 Placement & Stability feature set
 
-            Install `GameFlow-for-Blender-v0.5.5-alpha.zip` directly with **Edit → Preferences → Add-ons → Install from Disk**. Do not extract the ZIP first.
+            Install `GameFlow-for-Blender-v0.5.6-alpha.zip` with **Edit → Preferences → Add-ons → Install from Disk**. Fully close Blender before replacing an older GameFlow build. Do not extract the ZIP first.
           files: |
-            dist/GameFlow-for-Blender-v0.5.5-alpha.zip
-            dist/GameFlow-for-Blender-v0.5.5-alpha.sha256
+            dist/GameFlow-for-Blender-v0.5.6-alpha.zip
+            dist/GameFlow-for-Blender-v0.5.6-alpha.sha256
