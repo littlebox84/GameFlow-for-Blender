@@ -1,7 +1,7 @@
 bl_info = {
     "name": "GameFlow for Blender",
     "author": "Jared + OpenAI",
-    "version": (0, 5, 5),
+    "version": (0, 5, 6),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar > GameFlow",
     "description": "From player to creator — game-style navigation, ghost placement, creator tools, health checks, and a dark viewport HUD",
@@ -46,14 +46,7 @@ def _cleanup_stale_registered_classes():
 
 
 def _safe_cleanup_preview_objects():
-    """Remove orphan placement previews only when Blender exposes scene data.
-
-    Blender 5.x temporarily replaces bpy.data with _RestrictData while an
-    add-on is registering. Accessing bpy.data.objects during that window raises
-    an exception. Returning early here lets registration finish; later timer,
-    file-load, placement, and unregister calls perform normal cleanup once
-    bpy.data is available again.
-    """
+    """Remove orphan placement previews only when Blender exposes scene data."""
     try:
         objects = bpy.data.objects
     except (AttributeError, RuntimeError, ReferenceError):
@@ -74,8 +67,6 @@ def register():
     registration.register_preferences(preferences)
     _cleanup_stale_registered_classes()
 
-    # Route every early preview-cleanup path through a Blender-5-safe guard
-    # before placement/lifecycle registration can touch bpy.data.objects.
     placement.cleanup_preview_objects = _safe_cleanup_preview_objects
     lifecycle.cleanup_preview_objects = _safe_cleanup_preview_objects
 
