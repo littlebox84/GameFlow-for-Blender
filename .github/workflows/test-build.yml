@@ -3,7 +3,7 @@ name: Build GameFlow Test ZIP
 on:
   push:
     branches:
-      - v0.5-step3-build-assist
+      - 'v0.5-step*'
     paths:
       - 'gameflow_blender/**'
       - '.github/workflows/test-build.yml'
@@ -20,14 +20,18 @@ jobs:
         run: python -m py_compile gameflow_blender/*.py
 
       - name: Build Blender install ZIP
+        shell: bash
         run: |
           mkdir -p dist
-          zip -r dist/GameFlow-Step3-Build-Assist-Test.zip gameflow_blender
+          SAFE_BRANCH="${GITHUB_REF_NAME//\//-}"
+          ZIP_NAME="GameFlow-${SAFE_BRANCH}-Test.zip"
+          zip -r "dist/${ZIP_NAME}" gameflow_blender
+          echo "ZIP_NAME=${ZIP_NAME}" >> "$GITHUB_ENV"
 
       - name: Upload test ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: GameFlow-Step3-Build-Assist-Test
-          path: dist/GameFlow-Step3-Build-Assist-Test.zip
+          name: GameFlow-${{ github.ref_name }}-Test
+          path: dist/${{ env.ZIP_NAME }}
           if-no-files-found: error
           retention-days: 7
