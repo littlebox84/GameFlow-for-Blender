@@ -27,6 +27,7 @@ jobs:
 
       - name: Build Blender install ZIP
         run: |
+          find gameflow_blender -type d -name '__pycache__' -prune -exec rm -rf {} +
           mkdir -p dist
           zip -r dist/GameFlow-v0.5-Step5-UI-Refresh-Test.zip gameflow_blender
 
