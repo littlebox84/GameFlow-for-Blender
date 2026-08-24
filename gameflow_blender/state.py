@@ -5,6 +5,7 @@ running = False
 stop_requested = False
 restart_after_load = False
 last_heartbeat = 0.0
+safe_mode = False
 
 
 def mark_alive():
