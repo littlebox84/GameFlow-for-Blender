@@ -44,6 +44,7 @@ def build_health_report(context):
         f"GameFlow preferences: {'OK' if prefs is not None else 'MISSING'}",
         f"3D Viewport available: {'YES' if has_view3d else 'NO'}",
         f"Navigation: {'RUNNING' if navigation_alive else 'PAUSED'}",
+        f"Safe Mode: {'ON' if state.safe_mode else 'OFF'}",
         f"Keymap backup: {'FOUND' if backup_exists else 'NOT CREATED'}",
     ]
 
