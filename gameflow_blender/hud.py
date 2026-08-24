@@ -27,7 +27,7 @@ def _draw_rect(x, y, width, height, color):
     gpu.state.blend_set('NONE')
 
 
-def _text(text, x, y, size=13, color=(0.92, 0.94, 0.98, 1.0)):
+def _text(text, x, y, size=13, color=(0.94, 0.96, 1.0, 1.0)):
     font_id = 0
     blf.size(font_id, size)
     blf.color(font_id, *color)
@@ -39,14 +39,33 @@ def _mode_label(mode):
     return {'NAVIGATE': 'EXPLORE', 'BUILD': 'BUILD', 'PAINT': 'PAINT'}.get(mode, mode)
 
 
-def _position(region, width, height, corner, margin=18):
-    if corner == 'TOP_LEFT':
+def _position(region, width, height, location, margin=24):
+    if location == 'BOTTOM_CENTER':
+        return max(margin, (region.width - width) / 2), margin + 22
+    if location == 'TOP_LEFT':
         return margin, region.height - height - margin
-    if corner == 'BOTTOM_LEFT':
-        return margin, margin
-    if corner == 'BOTTOM_RIGHT':
-        return max(margin, region.width - width - margin), margin
+    if location == 'BOTTOM_LEFT':
+        return margin, margin + 22
+    if location == 'BOTTOM_RIGHT':
+        return max(margin, region.width - width - margin), margin + 22
     return max(margin, region.width - width - margin), region.height - height - margin
+
+
+def _context_hint(context, prefs):
+    obj = context.view_layer.objects.active if context.view_layer else None
+    selected = obj if obj and obj.select_get() else None
+
+    if prefs.creator_mode == 'BUILD':
+        if selected:
+            return f"{selected.name} selected  ·  Move, rotate, duplicate, or drop it to the floor"
+        return "Select something to build with, or add a new shape from the GameFlow panel"
+    if prefs.creator_mode == 'PAINT':
+        if selected:
+            return f"{selected.name} selected  ·  Pick a material in the GameFlow panel"
+        return "Select an object, then choose a material"
+    if selected:
+        return f"{selected.name} selected  ·  F Focus  ·  G Move  ·  R Rotate"
+    return "WASD Move  ·  Hold RMB Look  ·  Shift Sprint  ·  Scroll Zoom"
 
 
 def draw_hud():
@@ -62,20 +81,20 @@ def draw_hud():
         return
 
     full = prefs.hud_mode == 'FULL'
-    width = 300 if full else 236
-    height = 118 if full else 48
+    width = min(620, max(420, region.width - 120)) if full else min(390, max(280, region.width - 120))
+    height = 76 if full else 42
     x, y = _position(region, width, height, prefs.hud_corner)
 
     accent = MODE_COLORS.get(prefs.creator_mode, MODE_COLORS['NAVIGATE'])
     if state.safe_mode:
         accent = (0.45, 0.48, 0.54, 0.96)
 
-    _draw_rect(x, y, width, height, (0.018, 0.022, 0.030, 0.84))
+    _draw_rect(x, y, width, height, (0.018, 0.022, 0.030, 0.82))
     _draw_rect(x, y + height - 3, width, 3, accent)
 
     if state.safe_mode:
-        status = 'SAFE'
-        status_color = (0.72, 0.76, 0.82, 1.0)
+        status = 'SAFE MODE'
+        status_color = (0.76, 0.80, 0.86, 1.0)
     elif state.is_alive():
         status = 'READY'
         status_color = (0.45, 1.0, 0.62, 1.0)
@@ -84,29 +103,11 @@ def draw_hud():
         status_color = (1.0, 0.72, 0.35, 1.0)
 
     mode = _mode_label(prefs.creator_mode)
-    _text(f"GAMEFLOW · {mode}", x + 13, y + height - 24, 13)
-    _text(status, x + width - 62, y + height - 24, 11, status_color)
+    _text(f"GAMEFLOW  ·  {mode}", x + 16, y + height - 26, 14)
+    _text(status, x + width - (92 if status == 'SAFE MODE' else 62), y + height - 26, 12, status_color)
 
-    if not full:
-        return
-
-    obj = context.view_layer.objects.active if context.view_layer else None
-    selected_name = obj.name if obj and obj.select_get() else 'Nothing selected'
-    _text(selected_name, x + 13, y + height - 48, 11, (0.78, 0.82, 0.90, 1.0))
-
-    if prefs.creator_mode == 'BUILD':
-        snap = 'ON' if context.scene.tool_settings.use_snap else 'OFF'
-        detail = f"Step {prefs.build_grid_step:g} · Rotate {prefs.build_rotation_step:g}° · Snap {snap}"
-    elif prefs.creator_mode == 'PAINT':
-        detail = "Pick a material from the GameFlow panel"
-    else:
-        detail = f"Speed {prefs.movement_speed:g} · Look {prefs.look_sensitivity:.4f}"
-    _text(detail, x + 13, y + height - 70, 10, (0.70, 0.76, 0.86, 1.0))
-
-    _text("WASD Move · RMB Look · Shift Sprint · Scroll Zoom", x + 13, y + 25, 9,
-          (0.58, 0.64, 0.74, 1.0))
-    _text("F Focus · F8 Pause/Resume", x + 13, y + 10, 9,
-          (0.58, 0.64, 0.74, 1.0))
+    if full:
+        _text(_context_hint(context, prefs), x + 16, y + 18, 12, (0.76, 0.82, 0.92, 1.0))
 
 
 def enable_hud():
