@@ -26,64 +26,65 @@ def _preset_update(self, _context):
 class GAMEFLOW_Preferences(AddonPreferences):
     bl_idname = ADDON_ID
 
-    enabled: BoolProperty(name="Full GameFlow Controls Enabled", default=False)
+    enabled: BoolProperty(name="GameFlow Enabled", default=False)
     creator_mode: EnumProperty(
         name="Creator Mode",
         items=[
-            ('NAVIGATE', "Explore", "Game-style viewport navigation"),
-            ('BUILD', "Build", "Create, place, duplicate, snap, rotate, and arrange objects"),
-            ('PAINT', "Paint", "Fast beginner-friendly material presets"),
+            ('NAVIGATE', "Explore", "Move around the scene like a game"),
+            ('BUILD', "Build", "Create and arrange objects"),
+            ('PAINT', "Paint", "Apply simple material looks"),
         ],
         default='NAVIGATE',
     )
     preset: EnumProperty(
         name="Control Feel",
         items=[
-            ('GAMEFLOW', "GameFlow", "Balanced keyboard/mouse default for most users"),
-            ('ROBLOX', "Roblox", "Faster movement and camera feel inspired by Roblox Studio navigation"),
-            ('MINECRAFT', "Minecraft", "Responsive keyboard/mouse feel inspired by Minecraft movement"),
-            ('FPS', "First-Person", "Fast movement and quick response for experienced FPS players"),
-            ('STEAM', "Steam Controller", "Smoother tuning intended for a controller mapped through Steam Input; this preset does not enable Steam Input by itself"),
-            ('ACCESSIBLE', "Accessibility", "Slower, gentler movement and camera response"),
-            ('CUSTOM', "Custom", "Use the advanced values below"),
+            ('GAMEFLOW', "GameFlow", "Balanced default"),
+            ('ROBLOX', "Roblox", "Faster Roblox Studio-like movement"),
+            ('MINECRAFT', "Minecraft", "Responsive Minecraft-like movement"),
+            ('FPS', "First-Person", "Fast FPS-style response"),
+            ('STEAM', "Steam Controller", "Smoother controller-friendly tuning"),
+            ('ACCESSIBLE', "Accessibility", "Slower and gentler movement"),
+            ('CUSTOM', "Custom", "Use custom advanced values"),
         ],
         default='GAMEFLOW',
         update=_preset_update,
     )
     keymap_mode: EnumProperty(
-        name="Keyboard Simplification",
+        name="Keyboard Setup",
         items=[
-            ('MINIMAL', "GameFlow Minimal", "Recommended beginner keymap"),
-            ('CONFLICTS', "Conflicts Only", "Only disable direct GameFlow conflicts"),
-            ('NATIVE', "Native Blender", "Do not change Blender's user keymap"),
+            ('MINIMAL', "GameFlow Recommended", "Recommended beginner controls"),
+            ('CONFLICTS', "GameFlow Conflicts Only", "Only remove direct control conflicts"),
+            ('NATIVE', "Standard Blender", "Do not change Blender shortcuts"),
         ],
         default='MINIMAL',
     )
     hud_mode: EnumProperty(
-        name="Viewport HUD",
+        name="On-screen Helper",
         items=[
-            ('FULL', "Full", "Mode, status, selection, context data, and compact control hints"),
-            ('MINIMAL', "Minimal", "Compact mode and status HUD"),
-            ('OFF', "Off", "Hide the GameFlow viewport HUD"),
+            ('FULL', "Helpful", "Readable status bar with contextual control hints"),
+            ('MINIMAL', "Simple", "Compact mode and status bar"),
+            ('OFF', "Off", "Hide the on-screen helper"),
         ],
         default='FULL',
     )
     hud_corner: EnumProperty(
-        name="HUD Corner",
+        name="Helper Position",
         items=[
-            ('TOP_RIGHT', "Top Right", "Keep the HUD away from Blender's left toolbar"),
-            ('BOTTOM_RIGHT', "Bottom Right", "Place the HUD above the lower-right viewport edge"),
-            ('BOTTOM_LEFT', "Bottom Left", "Place the HUD above the timeline side of the viewport"),
-            ('TOP_LEFT', "Top Left", "Place the HUD in the upper-left corner"),
+            ('BOTTOM_CENTER', "Bottom Center", "Readable game-style helper above the bottom of the viewport"),
+            ('TOP_RIGHT', "Top Right", "Place the helper in the upper-right"),
+            ('BOTTOM_RIGHT', "Bottom Right", "Place the helper in the lower-right"),
+            ('BOTTOM_LEFT', "Bottom Left", "Place the helper in the lower-left"),
+            ('TOP_LEFT', "Top Left", "Place the helper in the upper-left"),
         ],
-        default='TOP_RIGHT',
+        default='BOTTOM_CENTER',
     )
 
-    movement_speed: FloatProperty(name="Walk Speed", default=4.0, min=0.05, max=100.0)
-    rmb_speed_multiplier: FloatProperty(name="RMB Fast Multiplier", default=2.5, min=1.0, max=10.0)
-    sprint_multiplier: FloatProperty(name="Shift Sprint Multiplier", default=2.0, min=1.0, max=10.0)
-    look_sensitivity: FloatProperty(name="Look Sensitivity", default=0.0030, min=0.0002, max=0.02, precision=4)
-    wheel_zoom_factor: FloatProperty(name="Scroll Zoom Strength", default=0.88, min=0.50, max=0.98)
+    movement_speed: FloatProperty(name="Move Speed", default=4.0, min=0.05, max=100.0)
+    rmb_speed_multiplier: FloatProperty(name="Look Boost", default=2.5, min=1.0, max=10.0)
+    sprint_multiplier: FloatProperty(name="Sprint Boost", default=2.0, min=1.0, max=10.0)
+    look_sensitivity: FloatProperty(name="Look Speed", default=0.0030, min=0.0002, max=0.02, precision=4)
+    wheel_zoom_factor: FloatProperty(name="Scroll Zoom", default=0.88, min=0.50, max=0.98)
     acceleration: FloatProperty(name="Acceleration", default=14.0, min=1.0, max=60.0)
     deceleration: FloatProperty(name="Deceleration", default=18.0, min=1.0, max=60.0)
     smooth_movement: BoolProperty(name="Smooth Movement", default=True)
@@ -92,69 +93,41 @@ class GAMEFLOW_Preferences(AddonPreferences):
     invert_zoom: BoolProperty(name="Invert Scroll Zoom", default=False)
     vertical_mode: EnumProperty(name="Q / E Direction", items=[('WORLD', "World Up/Down", "World vertical"), ('VIEW', "View Relative", "View-relative vertical")], default='WORLD')
     double_click_time: FloatProperty(name="Context Double-Click Time", default=0.32, min=0.15, max=0.60)
-    edge_wrap_look: BoolProperty(name="Unlimited RMB Look", description="Recenter pointer near viewport edges", default=True)
+    edge_wrap_look: BoolProperty(name="Unlimited RMB Look", default=True)
     edge_wrap_margin: IntProperty(name="Look Edge Margin", default=42, min=10, max=200)
     restore_cursor_after_look: BoolProperty(name="Return Cursor After RMB Look", default=True)
 
-    build_grid_step: FloatProperty(name="Build Step", description="Distance used by GameFlow nudge and duplicate tools", default=1.0, min=0.01, max=100.0, precision=2)
-    build_rotation_step: FloatProperty(name="Rotation Step", description="Degrees used by GameFlow step rotation", default=45.0, min=1.0, max=180.0, precision=1)
+    build_grid_step: FloatProperty(name="Build Step", default=1.0, min=0.01, max=100.0, precision=2)
+    build_rotation_step: FloatProperty(name="Rotation Step", default=45.0, min=1.0, max=180.0, precision=1)
 
-    auto_start: BoolProperty(name="Auto-start When Blender Opens", default=True)
-    restart_after_file_load: BoolProperty(name="Reconnect After Opening/New Project", default=True)
-    restore_controls_on_disable: BoolProperty(name="Restore Saved Controls When Add-on Is Disabled", default=True)
+    auto_start: BoolProperty(name="Start GameFlow with Blender", default=True)
+    restart_after_file_load: BoolProperty(name="Reconnect After Opening a Project", default=True)
+    restore_controls_on_disable: BoolProperty(name="Restore Blender Controls When Disabled", default=True)
 
-    show_controls: BoolProperty(name="Controls", default=False)
+    show_controls: BoolProperty(name="Help Me", default=False)
     show_build: BoolProperty(name="Build Tools", default=True)
     show_controller: BoolProperty(name="Controller Setup", default=False)
-    show_advanced: BoolProperty(name="Advanced Settings", default=False)
-    show_support: BoolProperty(name="Support & Recovery", default=False)
-    show_preset_help: BoolProperty(name="What do these presets mean?", default=False)
+    show_advanced: BoolProperty(name="Advanced", default=False)
+    show_support: BoolProperty(name="Recovery Tools", default=False)
+    show_preset_help: BoolProperty(name="Preset Help", default=False)
 
     def draw(self, context):
         layout = self.layout
         layout.label(text="GameFlow for Blender", icon='PLAY')
         layout.label(text="From player to creator.")
         layout.separator()
-        layout.prop(self, "creator_mode")
+        layout.prop(self, "preset")
         layout.prop(self, "hud_mode")
         if self.hud_mode != 'OFF':
             layout.prop(self, "hud_corner")
-
-        col = layout.column(align=True)
-        col.prop(self, "preset")
-        col.prop(self, "movement_speed")
-        col.prop(self, "look_sensitivity")
-
-        build = layout.box()
-        build.label(text="Creator Build")
-        build.prop(self, "build_grid_step")
-        build.prop(self, "build_rotation_step")
-
-        behavior = layout.box()
-        behavior.label(text="Behavior")
-        behavior.prop(self, "keymap_mode")
-        behavior.prop(self, "auto_start")
-        behavior.prop(self, "restart_after_file_load")
-        behavior.prop(self, "restore_controls_on_disable")
-
-        advanced = layout.box()
-        advanced.label(text="Advanced")
-        advanced.prop(self, "rmb_speed_multiplier")
-        advanced.prop(self, "sprint_multiplier")
-        advanced.prop(self, "smooth_movement")
-        if self.smooth_movement:
-            advanced.prop(self, "acceleration")
-            advanced.prop(self, "deceleration")
-        advanced.prop(self, "wheel_zoom_factor")
-        advanced.prop(self, "invert_x")
-        advanced.prop(self, "invert_y")
-        advanced.prop(self, "invert_zoom")
-        advanced.prop(self, "vertical_mode")
-        advanced.prop(self, "double_click_time")
-        advanced.prop(self, "edge_wrap_look")
-        if self.edge_wrap_look:
-            advanced.prop(self, "edge_wrap_margin")
-            advanced.prop(self, "restore_cursor_after_look")
+        layout.separator()
+        layout.label(text="Advanced")
+        layout.prop(self, "keymap_mode")
+        layout.prop(self, "movement_speed")
+        layout.prop(self, "look_sensitivity")
+        layout.prop(self, "auto_start")
+        layout.prop(self, "restart_after_file_load")
+        layout.prop(self, "restore_controls_on_disable")
 
 
 def get_prefs(context=None):
