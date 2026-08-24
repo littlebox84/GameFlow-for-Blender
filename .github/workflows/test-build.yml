@@ -1,9 +1,9 @@
-name: Build GameFlow Test ZIP
+name: Build GameFlow Step 5 Test ZIP
 
 on:
   push:
     branches:
-      - v0.5-step3-build-assist
+      - v0.5-step5-ui-refresh
     paths:
       - 'gameflow_blender/**'
       - '.github/workflows/test-build.yml'
@@ -22,12 +22,12 @@ jobs:
       - name: Build Blender install ZIP
         run: |
           mkdir -p dist
-          zip -r dist/GameFlow-Step3-Build-Assist-Test.zip gameflow_blender
+          zip -r dist/GameFlow-v0.5-Step5-UI-Refresh-Test.zip gameflow_blender
 
       - name: Upload test ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: GameFlow-Step3-Build-Assist-Test
-          path: dist/GameFlow-Step3-Build-Assist-Test.zip
+          name: GameFlow-v0.5-Step5-UI-Refresh-Test
+          path: dist/GameFlow-v0.5-Step5-UI-Refresh-Test.zip
           if-no-files-found: error
           retention-days: 7
