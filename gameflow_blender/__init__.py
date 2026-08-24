@@ -1,7 +1,7 @@
 bl_info = {
     "name": "GameFlow for Blender",
     "author": "Jared + OpenAI",
-    "version": (0, 5, 4),
+    "version": (0, 5, 5),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar > GameFlow",
     "description": "From player to creator — game-style navigation, ghost placement, creator tools, health checks, and a dark viewport HUD",
