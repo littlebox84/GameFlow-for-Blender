@@ -1,10 +1,10 @@
 bl_info = {
     "name": "GameFlow for Blender",
     "author": "Jared + OpenAI",
-    "version": (0, 5, 0),
+    "version": (0, 6, 1),
     "blender": (4, 2, 0),
     "location": "3D Viewport > Sidebar > GameFlow",
-    "description": "From player to creator — game-style navigation, creator tools, dark viewport HUD, health diagnostics, Safe Mode, and Build Assist",
+    "description": "From player to creator — game-style navigation, Quick Rig snap guides, creator tools, viewport HUD, health diagnostics, Safe Mode, and Build Assist",
     "category": "3D View",
 }
 
@@ -19,6 +19,7 @@ from . import health
 from . import safe_mode
 from . import hud
 from . import ui
+from . import rigging
 from . import keymap
 from . import lifecycle
 
@@ -28,10 +29,12 @@ def register():
     navigation.register()
     build_tools.register()
     health.register()
-    safe_mode.register()
     hud.register()
     ui.register()
+    # Child panels must register after their parent GameFlow panel.
+    safe_mode.register()
     build_assist.register()
+    rigging.register()
     keymap.register_addon_keymaps()
     lifecycle.register_handlers()
 
@@ -51,10 +54,11 @@ def unregister():
         except Exception:
             pass
 
+    rigging.unregister()
     build_assist.unregister()
+    safe_mode.unregister()
     ui.unregister()
     hud.unregister()
-    safe_mode.unregister()
     health.unregister()
     build_tools.unregister()
     navigation.unregister()
