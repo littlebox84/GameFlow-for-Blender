@@ -31,8 +31,7 @@ class GAMEFLOW_Preferences(AddonPreferences):
         name="Creator Mode",
         items=[
             ('NAVIGATE', "Explore", "Move around the scene like a game"),
-            ('BUILD', "Build", "Create and arrange objects"),
-            ('PAINT', "Paint", "Apply simple material looks"),
+            ('BUILD', "Build", "Create, arrange, and rig objects"),
         ],
         default='NAVIGATE',
     )
