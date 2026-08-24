@@ -29,11 +29,14 @@ def register():
     navigation.register()
     build_tools.register()
     health.register()
-    safe_mode.register()
     hud.register()
+
+    # Parent panel must exist before child panels are registered.
     ui.register()
+    safe_mode.register()
     build_assist.register()
     object_info.register()
+
     keymap.register_addon_keymaps()
     lifecycle.register_handlers()
 
@@ -53,11 +56,12 @@ def unregister():
         except Exception:
             pass
 
+    # Child panels must be removed before their parent panel.
     object_info.unregister()
     build_assist.unregister()
+    safe_mode.unregister()
     ui.unregister()
     hud.unregister()
-    safe_mode.unregister()
     health.unregister()
     build_tools.unregister()
     navigation.unregister()
