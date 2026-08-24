@@ -3,6 +3,7 @@ from bpy.props import BoolProperty, EnumProperty, FloatProperty, IntProperty
 from bpy.types import AddonPreferences
 
 ADDON_ID = __package__
+ADDON_LEAF_ID = (__package__ or "gameflow_blender").split('.')[-1]
 
 PRESETS = {
     'GAMEFLOW': {'movement_speed': 4.0, 'rmb_speed_multiplier': 2.5, 'sprint_multiplier': 2.0, 'look_sensitivity': 0.0030, 'wheel_zoom_factor': 0.88, 'acceleration': 14.0, 'deceleration': 18.0, 'invert_x': False, 'invert_y': False, 'vertical_mode': 'WORLD'},
@@ -27,52 +28,11 @@ class GAMEFLOW_Preferences(AddonPreferences):
     bl_idname = ADDON_ID
 
     enabled: BoolProperty(name="Full GameFlow Controls Enabled", default=False)
-    safe_mode: BoolProperty(
-        name="Safe Mode",
-        description="Use Creator tools while leaving Blender's normal key bindings active",
-        default=False,
-    )
-    creator_mode: EnumProperty(
-        name="Creator Mode",
-        items=[
-            ('NAVIGATE', "Explore", "Game-style viewport navigation"),
-            ('BUILD', "Build", "Create, place, duplicate, snap, rotate, and arrange objects"),
-            ('PAINT', "Paint", "Fast beginner-friendly material presets"),
-        ],
-        default='NAVIGATE',
-    )
-    preset: EnumProperty(
-        name="Control Feel",
-        items=[
-            ('GAMEFLOW', "GameFlow", "Balanced keyboard/mouse default for most users"),
-            ('ROBLOX', "Roblox", "Faster movement and camera feel inspired by Roblox Studio navigation"),
-            ('MINECRAFT', "Minecraft", "Responsive keyboard/mouse feel inspired by Minecraft movement"),
-            ('FPS', "First-Person", "Fast movement and quick response for experienced FPS players"),
-            ('STEAM', "Steam Controller", "Smoother tuning intended for a controller mapped through Steam Input; this preset does not enable Steam Input by itself"),
-            ('ACCESSIBLE', "Accessibility", "Slower, gentler movement and camera response"),
-            ('CUSTOM', "Custom", "Use the advanced values below"),
-        ],
-        default='GAMEFLOW',
-        update=_preset_update,
-    )
-    keymap_mode: EnumProperty(
-        name="Keyboard Simplification",
-        items=[
-            ('MINIMAL', "GameFlow Minimal", "Recommended beginner keymap"),
-            ('CONFLICTS', "Conflicts Only", "Only disable direct GameFlow conflicts"),
-            ('NATIVE', "Native Blender", "Do not change Blender's user keymap"),
-        ],
-        default='MINIMAL',
-    )
-    hud_mode: EnumProperty(
-        name="Dark Viewport HUD",
-        items=[
-            ('FULL', "Full", "Dark GameFlow HUD with mode, status, selection, build data, and control hints"),
-            ('MINIMAL', "Minimal", "Compact dark HUD with mode, status, and selected object"),
-            ('OFF', "Off", "Hide the GameFlow viewport HUD"),
-        ],
-        default='FULL',
-    )
+    safe_mode: BoolProperty(name="Safe Mode", description="Use Creator tools while leaving Blender's normal key bindings active", default=False)
+    creator_mode: EnumProperty(name="Creator Mode", items=[('NAVIGATE', "Explore", "Game-style viewport navigation"), ('BUILD', "Build", "Create, place, duplicate, snap, rotate, and arrange objects"), ('PAINT', "Paint", "Fast beginner-friendly material presets")], default='NAVIGATE')
+    preset: EnumProperty(name="Control Feel", items=[('GAMEFLOW', "GameFlow", "Balanced keyboard/mouse default for most users"), ('ROBLOX', "Roblox", "Faster movement and camera feel inspired by Roblox Studio navigation"), ('MINECRAFT', "Minecraft", "Responsive keyboard/mouse feel inspired by Minecraft movement"), ('FPS', "First-Person", "Fast movement and quick response for experienced FPS players"), ('STEAM', "Steam Controller", "Smoother tuning intended for a controller mapped through Steam Input; this preset does not enable Steam Input by itself"), ('ACCESSIBLE', "Accessibility", "Slower, gentler movement and camera response"), ('CUSTOM', "Custom", "Use the advanced values below")], default='GAMEFLOW', update=_preset_update)
+    keymap_mode: EnumProperty(name="Keyboard Simplification", items=[('MINIMAL', "GameFlow Minimal", "Recommended beginner keymap"), ('CONFLICTS', "Conflicts Only", "Only disable direct GameFlow conflicts"), ('NATIVE', "Native Blender", "Do not change Blender's user keymap")], default='MINIMAL')
+    hud_mode: EnumProperty(name="Dark Viewport HUD", items=[('FULL', "Full", "Dark GameFlow HUD with mode, status, selection, build data, and control hints"), ('MINIMAL', "Minimal", "Compact dark HUD with mode, status, and selected object"), ('OFF', "Off", "Hide the GameFlow viewport HUD")], default='FULL')
 
     movement_speed: FloatProperty(name="Walk Speed", default=4.0, min=0.05, max=100.0)
     rmb_speed_multiplier: FloatProperty(name="RMB Fast Multiplier", default=2.5, min=1.0, max=10.0)
@@ -116,26 +76,22 @@ class GAMEFLOW_Preferences(AddonPreferences):
         layout.prop(self, "creator_mode")
         layout.prop(self, "hud_mode")
         layout.prop(self, "safe_mode")
-
         col = layout.column(align=True)
         col.prop(self, "preset")
         col.prop(self, "movement_speed")
         col.prop(self, "look_sensitivity")
-
         build = layout.box()
         build.label(text="Creator Build")
         build.prop(self, "build_grid_step")
         build.prop(self, "build_rotation_step")
         build.prop(self, "placement_grid_snap")
         build.prop(self, "placement_continuous")
-
         behavior = layout.box()
         behavior.label(text="Behavior")
         behavior.prop(self, "keymap_mode")
         behavior.prop(self, "auto_start")
         behavior.prop(self, "restart_after_file_load")
         behavior.prop(self, "restore_controls_on_disable")
-
         advanced = layout.box()
         advanced.label(text="Advanced")
         advanced.prop(self, "rmb_speed_multiplier")
@@ -158,8 +114,51 @@ class GAMEFLOW_Preferences(AddonPreferences):
 
 def get_prefs(context=None):
     context = context or bpy.context
-    addon = context.preferences.addons.get(ADDON_ID)
-    return addon.preferences if addon else None
+    preferences = getattr(context, 'preferences', None)
+    addons = getattr(preferences, 'addons', None)
+    if addons is None:
+        return None
+
+    # Normal legacy and extension package IDs first.
+    candidates = []
+    for key in (ADDON_ID, ADDON_LEAF_ID):
+        if key and key not in candidates:
+            candidates.append(key)
+    try:
+        package = str(__package__ or '')
+        if package:
+            candidates.extend([
+                f"bl_ext.user_default.{ADDON_LEAF_ID}",
+                f"bl_ext.blender_org.{ADDON_LEAF_ID}",
+            ])
+    except Exception:
+        pass
+
+    for key in candidates:
+        try:
+            addon = addons.get(key)
+            if addon and getattr(addon, 'preferences', None) is not None:
+                return addon.preferences
+        except Exception:
+            continue
+
+    # Blender 5.x may namespace legacy installs differently. Resolve by key
+    # suffix and, as a final fallback, by the actual preferences RNA type.
+    try:
+        for addon in addons:
+            module = str(getattr(addon, 'module', '') or '')
+            prefs = getattr(addon, 'preferences', None)
+            if prefs is None:
+                continue
+            if module == ADDON_ID or module == ADDON_LEAF_ID or module.endswith('.' + ADDON_LEAF_ID):
+                return prefs
+            pref_type = type(prefs)
+            if pref_type.__name__ == 'GAMEFLOW_Preferences' or 'gameflow' in str(getattr(pref_type, '__module__', '')).lower():
+                return prefs
+    except Exception:
+        pass
+
+    return None
 
 
 classes = (GAMEFLOW_Preferences,)
@@ -172,4 +171,7 @@ def register():
 
 def unregister():
     for cls in reversed(classes):
-        bpy.utils.unregister_class(cls)
+        try:
+            bpy.utils.unregister_class(cls)
+        except (RuntimeError, ValueError, ReferenceError):
+            pass
