@@ -1,4 +1,4 @@
-name: Build GameFlow Test ZIP
+name: Build GameFlow Test Release
 
 on:
   push:
@@ -9,8 +9,11 @@ on:
       - '.github/workflows/test-build.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build-test-zip:
+  build-test-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,13 +28,26 @@ jobs:
           mkdir -p dist
           SAFE_BRANCH="${GITHUB_REF_NAME//\//-}"
           ZIP_NAME="GameFlow-${SAFE_BRANCH}-Test.zip"
+          TAG_NAME="${SAFE_BRANCH}-test-${GITHUB_RUN_NUMBER}"
           zip -r "dist/${ZIP_NAME}" gameflow_blender
+          sha256sum "dist/${ZIP_NAME}" > "dist/${ZIP_NAME}.sha256"
           echo "ZIP_NAME=${ZIP_NAME}" >> "$GITHUB_ENV"
+          echo "TAG_NAME=${TAG_NAME}" >> "$GITHUB_ENV"
 
-      - name: Upload test ZIP
-        uses: actions/upload-artifact@v4
+      - name: Publish test prerelease
+        uses: softprops/action-gh-release@v2
         with:
-          name: GameFlow-${{ github.ref_name }}-Test
-          path: dist/${{ env.ZIP_NAME }}
-          if-no-files-found: error
-          retention-days: 7
+          tag_name: ${{ env.TAG_NAME }}
+          name: GameFlow ${{ github.ref_name }} Test Build
+          prerelease: true
+          make_latest: false
+          generate_release_notes: false
+          body: |
+            Test build from `${{ github.ref_name }}`.
+
+            Install the ZIP directly in Blender using Edit → Preferences → Add-ons → Install from Disk.
+
+            This is a prerelease test build, not the stable release.
+          files: |
+            dist/${{ env.ZIP_NAME }}
+            dist/${{ env.ZIP_NAME }}.sha256
